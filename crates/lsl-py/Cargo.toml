@@ -12,6 +12,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 lsl-core = { path = "../lsl-core" }
-pyo3 = { version = "0.24", features = ["extension-module"] }
+pyo3 = { version = "0.24", features = ["extension-module", "generate-import-lib"] }
 numpy = "0.24"
 ndarray = "0.16"

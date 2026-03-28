@@ -5,7 +5,7 @@
 //! `spawn_blocking`, periodic work via `tokio::spawn`).
 
 use crate::parquet_writer::{ParquetRecordingWriter, ToF64};
-use exg::{NumericSample, XdfWriter};
+use exg::xdf::{NumericSample, XdfWriter};
 use lsl_core::clock::local_clock;
 use lsl_core::inlet::StreamInlet;
 use lsl_core::stream_info::StreamInfo;

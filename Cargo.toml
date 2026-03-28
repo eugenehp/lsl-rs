@@ -3,7 +3,6 @@ resolver = "2"
 members = [
     "crates/lsl-core",
     "crates/lsl-sys",
-    "crates/exg",
     "crates/lsl-rec",
     "crates/lsl-rec-gui",
     "crates/lsl-wasm",
@@ -51,8 +50,8 @@ crossterm = { version = "0.29", features = ["event-stream"] }
 futures = "0.3"
 
 # Internal
-lsl-core = { path = "crates/lsl-core" }
-exg = { path = "crates/exg" }
+lsl-core = { version = "0.0.1", path = "crates/lsl-core" }
+exg = { version = "0.0.4" }
 lsl-rec = { path = "crates/lsl-rec" }
 
 # Criterion benchmarks

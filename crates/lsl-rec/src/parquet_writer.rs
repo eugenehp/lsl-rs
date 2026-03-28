@@ -25,7 +25,7 @@ use parquet::arrow::ArrowWriter;
 use parquet::basic::Compression;
 use parquet::file::properties::WriterProperties;
 
-use exg::NumericSample;
+use exg::xdf::NumericSample;
 
 // ── Sidecar types ────────────────────────────────────────────────────
 

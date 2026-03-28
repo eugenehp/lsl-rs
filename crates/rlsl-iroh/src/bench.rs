@@ -68,20 +68,64 @@ impl std::fmt::Display for BenchResults {
         writeln!(f, "║       rlsl-iroh Benchmark Results         ║")?;
         writeln!(f, "╠═══════════════════════════════════════════╣")?;
         writeln!(f, "║ Pushed:     {:>10} samples            ║", self.pushed)?;
-        writeln!(f, "║ Received:   {:>10} samples            ║", self.received)?;
-        writeln!(f, "║ Loss:       {:>9.2}%                  ║", self.loss_pct)?;
-        writeln!(f, "║ Duration:   {:>9.2}s                  ║", self.elapsed_secs)?;
-        writeln!(f, "║ Throughput: {:>9.0} samples/s           ║", self.throughput_samples_sec)?;
-        writeln!(f, "║ Data rate:  {:>9.2} MB/s               ║", self.data_rate_mb_sec)?;
+        writeln!(
+            f,
+            "║ Received:   {:>10} samples            ║",
+            self.received
+        )?;
+        writeln!(
+            f,
+            "║ Loss:       {:>9.2}%                  ║",
+            self.loss_pct
+        )?;
+        writeln!(
+            f,
+            "║ Duration:   {:>9.2}s                  ║",
+            self.elapsed_secs
+        )?;
+        writeln!(
+            f,
+            "║ Throughput: {:>9.0} samples/s           ║",
+            self.throughput_samples_sec
+        )?;
+        writeln!(
+            f,
+            "║ Data rate:  {:>9.2} MB/s               ║",
+            self.data_rate_mb_sec
+        )?;
         writeln!(f, "║ QUIC RTT:   {:>9.0} µs                 ║", self.rtt_us)?;
         writeln!(f, "╠═══════════════════════════════════════════╣")?;
         writeln!(f, "║ Latency (source push → sink receive):    ║")?;
-        writeln!(f, "║   min:  {:>9.1} µs                     ║", self.latency_min_us)?;
-        writeln!(f, "║   mean: {:>9.1} µs                     ║", self.latency_mean_us)?;
-        writeln!(f, "║   p50:  {:>9.1} µs                     ║", self.latency_p50_us)?;
-        writeln!(f, "║   p95:  {:>9.1} µs                     ║", self.latency_p95_us)?;
-        writeln!(f, "║   p99:  {:>9.1} µs                     ║", self.latency_p99_us)?;
-        writeln!(f, "║   max:  {:>9.1} µs                     ║", self.latency_max_us)?;
+        writeln!(
+            f,
+            "║   min:  {:>9.1} µs                     ║",
+            self.latency_min_us
+        )?;
+        writeln!(
+            f,
+            "║   mean: {:>9.1} µs                     ║",
+            self.latency_mean_us
+        )?;
+        writeln!(
+            f,
+            "║   p50:  {:>9.1} µs                     ║",
+            self.latency_p50_us
+        )?;
+        writeln!(
+            f,
+            "║   p95:  {:>9.1} µs                     ║",
+            self.latency_p95_us
+        )?;
+        writeln!(
+            f,
+            "║   p99:  {:>9.1} µs                     ║",
+            self.latency_p99_us
+        )?;
+        writeln!(
+            f,
+            "║   max:  {:>9.1} µs                     ║",
+            self.latency_max_us
+        )?;
         writeln!(f, "╚═══════════════════════════════════════════╝")
     }
 }
@@ -181,7 +225,14 @@ async fn receive_loop(
                         match compress::decompress_chunk(&data[offset..], compression) {
                             Some((decompressed, chunk_consumed)) => {
                                 offset += chunk_consumed;
-                                parse_samples(&decompressed, fmt, nch, sample_data_bytes, arrival, &tx);
+                                parse_samples(
+                                    &decompressed,
+                                    fmt,
+                                    nch,
+                                    sample_data_bytes,
+                                    arrival,
+                                    &tx,
+                                );
                             }
                             None => break,
                         }
@@ -243,7 +294,11 @@ pub async fn run_bench(config: BenchConfig) -> Result<BenchResults> {
 
     eprintln!(
         "⚡ rlsl-iroh bench: {}ch × {}Hz × {:.1}s = {} samples ({})",
-        nch, config.sample_rate, config.duration_secs, n_samples, fmt.as_str()
+        nch,
+        config.sample_rate,
+        config.duration_secs,
+        n_samples,
+        fmt.as_str()
     );
 
     let (sample_tx, mut sample_rx) = mpsc::unbounded_channel::<(Sample, f64)>();
@@ -287,7 +342,14 @@ pub async fn run_bench(config: BenchConfig) -> Result<BenchResults> {
     let mut send_stream = conn.open_uni().await?;
     send_stream.set_priority(0)?;
 
-    let info = StreamInfo::new("IrohBench", "Benchmark", nch, config.sample_rate, fmt, "bench");
+    let info = StreamInfo::new(
+        "IrohBench",
+        "Benchmark",
+        nch,
+        config.sample_rate,
+        fmt,
+        "bench",
+    );
     let header = protocol::encode_stream_header(&info, config.compression);
     send_stream.write_all(&header).await?;
 
@@ -402,7 +464,9 @@ pub async fn run_bench(config: BenchConfig) -> Result<BenchResults> {
         latencies.iter().sum::<f64>() / latencies.len() as f64
     };
     let percentile = |p: usize| -> f64 {
-        if latencies.is_empty() { return 0.0; }
+        if latencies.is_empty() {
+            return 0.0;
+        }
         latencies[(latencies.len() * p / 100).min(latencies.len() - 1)]
     };
 

@@ -3,9 +3,9 @@
 //! Uses the bench infrastructure to create two in-process endpoints,
 //! stream samples through the full pipeline, and assert zero loss.
 
+use rlsl::prelude::ChannelFormat;
 use rlsl_iroh::bench::{run_bench, BenchConfig};
 use rlsl_iroh::compress::Compression;
-use rlsl::prelude::ChannelFormat;
 
 async fn assert_zero_loss(config: BenchConfig) {
     let label = format!(
@@ -15,17 +15,15 @@ async fn assert_zero_loss(config: BenchConfig) {
         config.format.as_str(),
         config.compression.as_str(),
     );
-    let results = run_bench(config).await.expect(&format!("bench failed: {}", label));
+    let results = run_bench(config)
+        .await
+        .expect(&format!("bench failed: {}", label));
     assert_eq!(
         results.loss_pct, 0.0,
         "{}: expected 0% loss, got {:.4}%",
         label, results.loss_pct
     );
-    assert!(
-        results.received > 0,
-        "{}: received 0 samples",
-        label
-    );
+    assert!(results.received > 0, "{}: received 0 samples", label);
     assert_eq!(
         results.pushed, results.received,
         "{}: pushed {} != received {}",

@@ -175,7 +175,11 @@ async fn forward_stream(
 
     log::info!(
         "Forwarding stream '{}' (fmt={:?}, ch={}, srate={}, compression={:?})...",
-        name, fmt, nch, srate, compression
+        name,
+        fmt,
+        nch,
+        srate,
+        compression
     );
 
     let stats = Arc::new(ForwardStats::default());
@@ -229,74 +233,85 @@ async fn forward_stream(
             }
 
             let sample = match fmt {
-                ChannelFormat::Float32 => {
-                    inlet.pull_sample_f(&mut buf_f32, poll_timeout).ok().and_then(|ts| {
+                ChannelFormat::Float32 => inlet
+                    .pull_sample_f(&mut buf_f32, poll_timeout)
+                    .ok()
+                    .and_then(|ts| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_f32(&buf_f32);
                             s
                         })
-                    })
-                }
-                ChannelFormat::Double64 => {
-                    inlet.pull_sample_d(&mut buf_f64, poll_timeout).ok().and_then(|ts| {
+                    }),
+                ChannelFormat::Double64 => inlet
+                    .pull_sample_d(&mut buf_f64, poll_timeout)
+                    .ok()
+                    .and_then(|ts| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_f64(&buf_f64);
                             s
                         })
-                    })
-                }
-                ChannelFormat::Int32 => {
-                    inlet.pull_sample_i32(&mut buf_i32, poll_timeout).ok().and_then(|ts| {
+                    }),
+                ChannelFormat::Int32 => inlet
+                    .pull_sample_i32(&mut buf_i32, poll_timeout)
+                    .ok()
+                    .and_then(|ts| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_i32(&buf_i32);
                             s
                         })
-                    })
-                }
-                ChannelFormat::Int16 => {
-                    inlet.pull_sample_i16(&mut buf_i16, poll_timeout).ok().and_then(|ts| {
+                    }),
+                ChannelFormat::Int16 => inlet
+                    .pull_sample_i16(&mut buf_i16, poll_timeout)
+                    .ok()
+                    .and_then(|ts| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_i16(&buf_i16);
                             s
                         })
-                    })
-                }
+                    }),
                 ChannelFormat::Int8 => {
                     // No pull_sample_i8 — pull as i16 and downcast
                     let raw_len = nch as usize;
-                    inlet.pull_sample_i16(&mut buf_i16, poll_timeout).ok().and_then(|ts| {
-                        (ts > 0.0).then(|| {
-                            let mut s = Sample::new(fmt, nch, ts);
-                            for (i, v) in buf_i8.iter_mut().enumerate() {
-                                if i < raw_len { *v = buf_i16[i] as i8; }
-                            }
-                            s.assign_i8(&buf_i8);
-                            s
+                    inlet
+                        .pull_sample_i16(&mut buf_i16, poll_timeout)
+                        .ok()
+                        .and_then(|ts| {
+                            (ts > 0.0).then(|| {
+                                let mut s = Sample::new(fmt, nch, ts);
+                                for (i, v) in buf_i8.iter_mut().enumerate() {
+                                    if i < raw_len {
+                                        *v = buf_i16[i] as i8;
+                                    }
+                                }
+                                s.assign_i8(&buf_i8);
+                                s
+                            })
                         })
-                    })
                 }
-                ChannelFormat::Int64 => {
-                    inlet.pull_sample_i64(&mut buf_i64, poll_timeout).ok().and_then(|ts| {
+                ChannelFormat::Int64 => inlet
+                    .pull_sample_i64(&mut buf_i64, poll_timeout)
+                    .ok()
+                    .and_then(|ts| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_i64(&buf_i64);
                             s
                         })
-                    })
-                }
-                ChannelFormat::String | ChannelFormat::Undefined => {
-                    inlet.pull_sample_str(poll_timeout).ok().and_then(|(strings, ts)| {
+                    }),
+                ChannelFormat::String | ChannelFormat::Undefined => inlet
+                    .pull_sample_str(poll_timeout)
+                    .ok()
+                    .and_then(|(strings, ts)| {
                         (ts > 0.0).then(|| {
                             let mut s = Sample::new(fmt, nch, ts);
                             s.assign_strings(&strings);
                             s
                         })
-                    })
-                }
+                    }),
             };
 
             if let Some(s) = sample {
@@ -341,12 +356,17 @@ async fn forward_stream(
     let pulled = stats.samples_pulled.load(Ordering::Relaxed);
     log::info!(
         "Stream '{}': pulled={}, sent={}, delta={}",
-        info.name(), pulled, sent_count, pulled as i64 - sent_count as i64
+        info.name(),
+        pulled,
+        sent_count,
+        pulled as i64 - sent_count as i64
     );
     if pulled != sent_count {
         log::error!(
             "Stream '{}': DATA LOSS — {} samples pulled but only {} sent!",
-            info.name(), pulled, sent_count
+            info.name(),
+            pulled,
+            sent_count
         );
     }
 

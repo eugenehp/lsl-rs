@@ -231,7 +231,12 @@ mod tests {
         compress_chunk(data, mode, &mut compressed);
 
         let (decompressed, consumed) = decompress_chunk(&compressed, mode).unwrap();
-        assert_eq!(consumed, compressed.len(), "mode={:?}: consumed mismatch", mode);
+        assert_eq!(
+            consumed,
+            compressed.len(),
+            "mode={:?}: consumed mismatch",
+            mode
+        );
         assert_eq!(decompressed, data, "mode={:?}: data mismatch", mode);
     }
 

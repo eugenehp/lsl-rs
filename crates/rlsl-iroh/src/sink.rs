@@ -17,10 +17,7 @@ use std::sync::Arc;
 pub struct LslSinkHandler;
 
 impl ProtocolHandler for LslSinkHandler {
-    async fn accept(
-        &self,
-        connection: Connection,
-    ) -> std::result::Result<(), AcceptError> {
+    async fn accept(&self, connection: Connection) -> std::result::Result<(), AcceptError> {
         log::info!(
             "Incoming tunnel connection (rtt={:?})",
             connection.rtt(iroh::endpoint::PathId::default())
@@ -172,8 +169,8 @@ async fn read_stream_header(recv: &mut RecvStream) -> Result<(StreamInfo, Compre
     recv.read_exact(&mut xml_buf).await?;
 
     let xml = std::str::from_utf8(&xml_buf)?;
-    let info = StreamInfo::from_shortinfo_message(xml)
-        .ok_or_else(|| anyhow::anyhow!("bad XML header"))?;
+    let info =
+        StreamInfo::from_shortinfo_message(xml).ok_or_else(|| anyhow::anyhow!("bad XML header"))?;
     Ok((info, compression))
 }
 
@@ -195,12 +192,7 @@ async fn handle_datagrams(conn: Connection) {
 
 /// Deserialize as many complete samples as possible from `data`.
 /// Returns bytes consumed.
-fn push_samples(
-    data: &[u8],
-    outlet: &StreamOutlet,
-    fmt: ChannelFormat,
-    nch: u32,
-) -> Result<usize> {
+fn push_samples(data: &[u8], outlet: &StreamOutlet, fmt: ChannelFormat, nch: u32) -> Result<usize> {
     let mut cursor = Cursor::new(data);
     let sample_data_bytes = fmt.channel_bytes() * nch as usize;
 

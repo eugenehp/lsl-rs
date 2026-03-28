@@ -219,7 +219,10 @@ async fn main() -> Result<()> {
             eprintln!("{}", results);
 
             if results.loss_pct > 0.0 {
-                eprintln!("⚠️  DATA LOSS DETECTED: {:.4}% — this is a bug!", results.loss_pct);
+                eprintln!(
+                    "⚠️  DATA LOSS DETECTED: {:.4}% — this is a bug!",
+                    results.loss_pct
+                );
                 std::process::exit(1);
             } else {
                 eprintln!("✅ Zero data loss confirmed.");
@@ -258,11 +261,21 @@ fn run_lsl_baseline_sync(
 
     eprintln!(
         "⚡ Baseline: {}ch × {}Hz × {:.1}s = {} samples ({})",
-        nch, srate, duration_secs, n_samples, fmt.as_str()
+        nch,
+        srate,
+        duration_secs,
+        n_samples,
+        fmt.as_str()
     );
 
-    let info =
-        rlsl::stream_info::StreamInfo::new("BaselineBench", "Benchmark", nch, srate, fmt, "baseline");
+    let info = rlsl::stream_info::StreamInfo::new(
+        "BaselineBench",
+        "Benchmark",
+        nch,
+        srate,
+        fmt,
+        "baseline",
+    );
 
     let outlet = StreamOutlet::new(&info, 0, 360);
     std::thread::sleep(Duration::from_millis(200));
@@ -312,14 +325,24 @@ fn run_lsl_baseline_sync(
     let received = latencies.len() as u64;
     latencies.sort_by(|a, b| a.partial_cmp(b).unwrap());
     let to_us = 1_000_000.0;
-    let mean = if latencies.is_empty() { 0.0 } else { latencies.iter().sum::<f64>() / latencies.len() as f64 };
+    let mean = if latencies.is_empty() {
+        0.0
+    } else {
+        latencies.iter().sum::<f64>() / latencies.len() as f64
+    };
     let pct = |p: usize| -> f64 {
-        if latencies.is_empty() { return 0.0; }
+        if latencies.is_empty() {
+            return 0.0;
+        }
         latencies[(latencies.len() * p / 100).min(latencies.len() - 1)]
     };
     let throughput = received as f64 / elapsed.as_secs_f64();
     let data_rate = throughput * nch as f64 * fmt.channel_bytes().max(1) as f64 / 1_000_000.0;
-    let loss = if n_samples > 0 { (1.0 - received as f64 / n_samples as f64) * 100.0 } else { 0.0 };
+    let loss = if n_samples > 0 {
+        (1.0 - received as f64 / n_samples as f64) * 100.0
+    } else {
+        0.0
+    };
 
     eprintln!("╔═══════════════════════════════════════════╗");
     eprintln!("║     Baseline (LSL TCP loopback) Results   ║");
@@ -327,17 +350,35 @@ fn run_lsl_baseline_sync(
     eprintln!("║ Pushed:     {:>10} samples            ║", n_samples);
     eprintln!("║ Received:   {:>10} samples            ║", received);
     eprintln!("║ Loss:       {:>9.2}%                  ║", loss);
-    eprintln!("║ Duration:   {:>9.2}s                  ║", elapsed.as_secs_f64());
+    eprintln!(
+        "║ Duration:   {:>9.2}s                  ║",
+        elapsed.as_secs_f64()
+    );
     eprintln!("║ Throughput: {:>9.0} samples/s           ║", throughput);
     eprintln!("║ Data rate:  {:>9.2} MB/s               ║", data_rate);
     eprintln!("╠═══════════════════════════════════════════╣");
     eprintln!("║ Latency (push→pull):                     ║");
-    eprintln!("║   min:  {:>9.1} µs                     ║", latencies.first().copied().unwrap_or(0.0) * to_us);
+    eprintln!(
+        "║   min:  {:>9.1} µs                     ║",
+        latencies.first().copied().unwrap_or(0.0) * to_us
+    );
     eprintln!("║   mean: {:>9.1} µs                     ║", mean * to_us);
-    eprintln!("║   p50:  {:>9.1} µs                     ║", pct(50) * to_us);
-    eprintln!("║   p95:  {:>9.1} µs                     ║", pct(95) * to_us);
-    eprintln!("║   p99:  {:>9.1} µs                     ║", pct(99) * to_us);
-    eprintln!("║   max:  {:>9.1} µs                     ║", latencies.last().copied().unwrap_or(0.0) * to_us);
+    eprintln!(
+        "║   p50:  {:>9.1} µs                     ║",
+        pct(50) * to_us
+    );
+    eprintln!(
+        "║   p95:  {:>9.1} µs                     ║",
+        pct(95) * to_us
+    );
+    eprintln!(
+        "║   p99:  {:>9.1} µs                     ║",
+        pct(99) * to_us
+    );
+    eprintln!(
+        "║   max:  {:>9.1} µs                     ║",
+        latencies.last().copied().unwrap_or(0.0) * to_us
+    );
     eprintln!("╚═══════════════════════════════════════════╝");
 
     Ok(())

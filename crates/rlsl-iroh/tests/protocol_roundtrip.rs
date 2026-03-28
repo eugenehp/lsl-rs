@@ -23,7 +23,14 @@ fn stream_header_roundtrip_no_compression() {
 
 #[test]
 fn stream_header_roundtrip_lz4() {
-    let info = StreamInfo::new("TestLZ4", "EMG", 4, 1000.0, ChannelFormat::Double64, "lz4src");
+    let info = StreamInfo::new(
+        "TestLZ4",
+        "EMG",
+        4,
+        1000.0,
+        ChannelFormat::Double64,
+        "lz4src",
+    );
     let encoded = protocol::encode_stream_header(&info, Compression::Lz4);
 
     let (decoded, comp, consumed) = protocol::decode_stream_header(&encoded).unwrap();

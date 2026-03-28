@@ -107,7 +107,12 @@ impl SignalQuality {
         let effective_srate = if mean_dt > 0.0 { 1.0 / mean_dt } else { 0.0 };
 
         // Jitter = std dev of intervals
-        let var: f64 = self.intervals.iter().map(|&dt| (dt - mean_dt).powi(2)).sum::<f64>() / n as f64;
+        let var: f64 = self
+            .intervals
+            .iter()
+            .map(|&dt| (dt - mean_dt).powi(2))
+            .sum::<f64>()
+            / n as f64;
         let jitter_sec = var.sqrt();
 
         // Dropout rate
@@ -153,8 +158,12 @@ impl SignalQuality {
         self.last_ts = 0.0;
         self.total_samples = 0;
         self.total_dropouts = 0;
-        for v in &mut self.ch_sum { *v = 0.0; }
-        for v in &mut self.ch_sum2 { *v = 0.0; }
+        for v in &mut self.ch_sum {
+            *v = 0.0;
+        }
+        for v in &mut self.ch_sum2 {
+            *v = 0.0;
+        }
         self.ch_count = 0;
     }
 }

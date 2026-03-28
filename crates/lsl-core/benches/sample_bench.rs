@@ -1,6 +1,6 @@
 //! Criterion benchmarks for sample serialization/deserialization.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use lsl_core::sample::Sample;
 use lsl_core::types::ChannelFormat;
 use std::io::Cursor;

@@ -1,8 +1,8 @@
 //! Mutable XML DOM for stream descriptions.
 //! Provides a pugixml-compatible tree structure used by StreamInfo's <desc> element.
 
-use std::sync::Arc;
 use parking_lot::Mutex;
+use std::sync::Arc;
 
 /// Internal node data
 #[derive(Debug)]
@@ -23,15 +23,13 @@ pub struct XmlNode {
 }
 
 /// A null/empty sentinel node
-static EMPTY_NODE: once_cell::sync::Lazy<XmlNode> = once_cell::sync::Lazy::new(|| {
-    XmlNode {
-        inner: Arc::new(Mutex::new(NodeData {
-            name: String::new(),
-            value: String::new(),
-            children: Vec::new(),
-            parent: None,
-        })),
-    }
+static EMPTY_NODE: once_cell::sync::Lazy<XmlNode> = once_cell::sync::Lazy::new(|| XmlNode {
+    inner: Arc::new(Mutex::new(NodeData {
+        name: String::new(),
+        value: String::new(),
+        children: Vec::new(),
+        parent: None,
+    })),
 });
 
 impl XmlNode {
@@ -155,7 +153,10 @@ impl XmlNode {
     /// Get the first child
     pub fn first_child(&self) -> XmlNode {
         let data = self.inner.lock();
-        data.children.first().cloned().unwrap_or_else(XmlNode::empty)
+        data.children
+            .first()
+            .cloned()
+            .unwrap_or_else(XmlNode::empty)
     }
 
     /// Get the last child

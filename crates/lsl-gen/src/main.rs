@@ -39,7 +39,10 @@ fn main() -> anyhow::Result<()> {
 
     eprintln!("🎵 lsl-gen streaming:");
     eprintln!("   name={}, type={}, {}ch, {}Hz", name, type_, nch, srate);
-    eprintln!("   waveform={}, freq={}Hz, amplitude={}", waveform, freq, amplitude);
+    eprintln!(
+        "   waveform={}, freq={}Hz, amplitude={}",
+        waveform, freq, amplitude
+    );
     eprintln!("   TCP port {}, Ctrl-C to stop", info.v4data_port());
 
     let interval = Duration::from_secs_f64(1.0 / srate);
@@ -57,7 +60,9 @@ fn main() -> anyhow::Result<()> {
                 "sine" => amplitude * phase.sin(),
                 "square" => amplitude * phase.sin().signum(),
                 "sawtooth" => amplitude * (2.0 * ((freq * t + ch as f64 * 0.1) % 1.0) - 1.0),
-                "noise" => amplitude * (pseudo_random(sample_idx * nch as u64 + ch as u64) * 2.0 - 1.0),
+                "noise" => {
+                    amplitude * (pseudo_random(sample_idx * nch as u64 + ch as u64) * 2.0 - 1.0)
+                }
                 "chirp" => {
                     // Frequency sweeps from freq to freq*4 over 10 seconds
                     let sweep = freq * (1.0 + 3.0 * (t % 10.0) / 10.0);
@@ -78,6 +83,8 @@ fn main() -> anyhow::Result<()> {
 
 /// Simple deterministic pseudo-random (not crypto) for noise waveform.
 fn pseudo_random(seed: u64) -> f64 {
-    let x = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    let x = seed
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
     (x >> 33) as f64 / (1u64 << 31) as f64
 }

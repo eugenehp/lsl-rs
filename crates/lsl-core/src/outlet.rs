@@ -1,14 +1,14 @@
 //! StreamOutlet: publishes data on the lab network.
 
-use crate::stream_info::StreamInfo;
-use crate::send_buffer::SendBuffer;
-use crate::tcp_server::TcpServer;
-use crate::udp_server::UdpServer;
-use crate::sample::Sample;
-use crate::types::*;
 use crate::clock::local_clock;
-use std::sync::Arc;
+use crate::sample::Sample;
+use crate::send_buffer::SendBuffer;
+use crate::stream_info::StreamInfo;
+use crate::tcp_server::TcpServer;
+use crate::types::*;
+use crate::udp_server::UdpServer;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 /// A stream outlet. Creates a discoverable stream on the network.
 pub struct StreamOutlet {
@@ -35,16 +35,13 @@ impl StreamOutlet {
         );
 
         // Start TCP data server (IPv4 + IPv6)
-        let tcp = TcpServer::start(
-            info.clone(),
-            send_buffer.clone(),
-            chunk_size,
-        );
+        let tcp = TcpServer::start(info.clone(), send_buffer.clone(), chunk_size);
         info.set_v4data_port(tcp.v4_port);
         info.set_v6data_port(tcp.v6_port);
 
         // Start UDP service (time sync, IPv4 + IPv6)
-        let (v4_svc_port, v6_svc_port) = UdpServer::start_unicast(info.clone(), tcp.shutdown.clone());
+        let (v4_svc_port, v6_svc_port) =
+            UdpServer::start_unicast(info.clone(), tcp.shutdown.clone());
         info.set_v4service_port(v4_svc_port);
         info.set_v6service_port(v6_svc_port);
 
@@ -67,7 +64,11 @@ impl StreamOutlet {
 
     /// Push a single float sample
     pub fn push_sample_f(&self, data: &[f32], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_f32(data);
         sample.pushthrough = pushthrough;
@@ -76,7 +77,11 @@ impl StreamOutlet {
 
     /// Push a single double sample
     pub fn push_sample_d(&self, data: &[f64], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_f64(data);
         sample.pushthrough = pushthrough;
@@ -84,7 +89,11 @@ impl StreamOutlet {
     }
 
     pub fn push_sample_i32(&self, data: &[i32], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_i32(data);
         sample.pushthrough = pushthrough;
@@ -92,7 +101,11 @@ impl StreamOutlet {
     }
 
     pub fn push_sample_i16(&self, data: &[i16], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_i16(data);
         sample.pushthrough = pushthrough;
@@ -100,7 +113,11 @@ impl StreamOutlet {
     }
 
     pub fn push_sample_i64(&self, data: &[i64], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_i64(data);
         sample.pushthrough = pushthrough;
@@ -108,7 +125,11 @@ impl StreamOutlet {
     }
 
     pub fn push_sample_str(&self, data: &[String], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_strings(data);
         sample.pushthrough = pushthrough;
@@ -116,7 +137,11 @@ impl StreamOutlet {
     }
 
     pub fn push_sample_raw(&self, data: &[u8], timestamp: f64, pushthrough: bool) {
-        let ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         let mut sample = Sample::new(self.info.channel_format(), self.info.channel_count(), ts);
         sample.assign_raw(data);
         sample.pushthrough = pushthrough;
@@ -126,10 +151,16 @@ impl StreamOutlet {
     /// Push a chunk of multiplexed float data
     pub fn push_chunk_f(&self, data: &[f32], timestamp: f64, pushthrough: bool) {
         let nch = self.info.channel_count() as usize;
-        if nch == 0 { return; }
+        if nch == 0 {
+            return;
+        }
         let n_samples = data.len() / nch;
         let srate = self.info.nominal_srate();
-        let mut ts = if timestamp == 0.0 { local_clock() } else { timestamp };
+        let mut ts = if timestamp == 0.0 {
+            local_clock()
+        } else {
+            timestamp
+        };
         if srate != IRREGULAR_RATE && n_samples > 1 {
             ts -= (n_samples - 1) as f64 / srate;
         }

@@ -66,7 +66,9 @@ async fn time_correction_async(host: &str, port: u16, timeout: f64) -> Result<f6
         // Wait for reply
         let mut buf = [0u8; 256];
         let recv_timeout = probe_interval.min(Duration::from_secs_f64(
-            (deadline - tokio::time::Instant::now()).as_secs_f64().max(0.01),
+            (deadline - tokio::time::Instant::now())
+                .as_secs_f64()
+                .max(0.01),
         ));
 
         match tokio::time::timeout(recv_timeout, socket.recv_from(&mut buf)).await {
@@ -101,7 +103,10 @@ async fn time_correction_async(host: &str, port: u16, timeout: f64) -> Result<f6
 
     // Sort by RTT and take the best probes
     results.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
-    let n_use = results.len().min(CONFIG.time_update_minprobes as usize).max(1);
+    let n_use = results
+        .len()
+        .min(CONFIG.time_update_minprobes as usize)
+        .max(1);
     let best = &results[..n_use];
 
     // Return median offset of the best probes

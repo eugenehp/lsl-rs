@@ -8,7 +8,11 @@ mod clock_tests {
     #[test]
     fn clock_returns_positive() {
         let t = local_clock();
-        assert!(t > 0.0, "local_clock() should return positive value, got {}", t);
+        assert!(
+            t > 0.0,
+            "local_clock() should return positive value, got {}",
+            t
+        );
     }
 
     #[test]
@@ -107,7 +111,10 @@ mod types_tests {
     #[test]
     fn proc_flags() {
         assert_eq!(PROC_NONE, 0);
-        assert_eq!(PROC_ALL, PROC_CLOCKSYNC | PROC_DEJITTER | PROC_MONOTONIZE | PROC_THREADSAFE);
+        assert_eq!(
+            PROC_ALL,
+            PROC_CLOCKSYNC | PROC_DEJITTER | PROC_MONOTONIZE | PROC_THREADSAFE
+        );
     }
 }
 
@@ -202,11 +209,7 @@ mod sample_tests {
     #[test]
     fn assign_retrieve_strings() {
         let mut s = Sample::new(ChannelFormat::String, 3, 0.0);
-        s.assign_strings(&[
-            "hello".to_string(),
-            "world".to_string(),
-            "".to_string(),
-        ]);
+        s.assign_strings(&["hello".to_string(), "world".to_string(), "".to_string()]);
         let out = s.retrieve_strings();
         assert_eq!(out, vec!["hello", "world", ""]);
     }
@@ -425,7 +428,14 @@ mod sample_tests {
         // A string sample with invalid length-size byte
         let data: Vec<u8> = vec![
             TAG_TRANSMITTED_TIMESTAMP,
-            0, 0, 0, 0, 0, 0, 0, 0, // timestamp
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0, // timestamp
             7, // invalid len_size (not 1, 4, or 8)
         ];
         let mut cursor = Cursor::new(&data);
@@ -438,8 +448,18 @@ mod sample_tests {
         // Too few bytes for a float32 sample with 4 channels
         let data: Vec<u8> = vec![
             TAG_TRANSMITTED_TIMESTAMP,
-            0, 0, 0, 0, 0, 0, 0, 0, // timestamp
-            0, 0, 0, 0, // only 4 bytes instead of 16
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0, // timestamp
+            0,
+            0,
+            0,
+            0, // only 4 bytes instead of 16
         ];
         let mut cursor = Cursor::new(&data);
         let result = Sample::deserialize_110(&mut cursor, ChannelFormat::Float32, 4);
@@ -458,8 +478,7 @@ mod sample_tests {
 
         let mut cursor = Cursor::new(&buf);
         for i in 0..10 {
-            let decoded =
-                Sample::deserialize_110(&mut cursor, ChannelFormat::Float32, 2).unwrap();
+            let decoded = Sample::deserialize_110(&mut cursor, ChannelFormat::Float32, 2).unwrap();
             assert_eq!(decoded.timestamp, i as f64);
             let mut out = [0.0f32; 2];
             decoded.retrieve_f32(&mut out);
@@ -822,7 +841,14 @@ mod stream_info_tests {
 
     #[test]
     fn shortinfo_roundtrip() {
-        let info = StreamInfo::new("RoundTrip", "Markers", 1, 0.0, ChannelFormat::String, "rt_src");
+        let info = StreamInfo::new(
+            "RoundTrip",
+            "Markers",
+            1,
+            0.0,
+            ChannelFormat::String,
+            "rt_src",
+        );
         info.set_uid("fixed-uid");
         info.set_hostname("testhost");
 
@@ -904,7 +930,14 @@ mod stream_info_tests {
 
     #[test]
     fn xml_escaping_in_name() {
-        let info = StreamInfo::new("Stream<1>&\"test\"", "T&ype", 1, 0.0, ChannelFormat::Float32, "");
+        let info = StreamInfo::new(
+            "Stream<1>&\"test\"",
+            "T&ype",
+            1,
+            0.0,
+            ChannelFormat::Float32,
+            "",
+        );
         let xml = info.to_shortinfo_message();
         assert!(xml.contains("&lt;"));
         assert!(xml.contains("&amp;"));
@@ -1113,10 +1146,7 @@ mod signal_quality_tests {
             sq.update(i as f64 * 0.01, &[100.0]);
         }
         let snap = sq.snapshot();
-        assert!(
-            snap.snr_db.len() == 1,
-            "Should have 1 channel SNR"
-        );
+        assert!(snap.snr_db.len() == 1, "Should have 1 channel SNR");
         // Constant signal has zero variance → infinite SNR
         assert!(snap.snr_db[0].is_infinite());
     }

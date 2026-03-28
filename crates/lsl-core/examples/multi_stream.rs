@@ -19,17 +19,33 @@ fn main() -> anyhow::Result<()> {
         c.append_child_value("type", "EEG");
     }
     let eeg_outlet = StreamOutlet::new(&eeg_info, 0, 360);
-    eprintln!("✓ EEG outlet: 32ch × 256Hz, port {}", eeg_info.v4data_port());
+    eprintln!(
+        "✓ EEG outlet: 32ch × 256Hz, port {}",
+        eeg_info.v4data_port()
+    );
 
     // ── EMG stream (4 channels, 2000 Hz) ──
     let emg_info = StreamInfo::new("EMG", "EMG", 4, 2000.0, ChannelFormat::Float32, "emg_src");
     let emg_outlet = StreamOutlet::new(&emg_info, 0, 360);
-    eprintln!("✓ EMG outlet: 4ch × 2000Hz, port {}", emg_info.v4data_port());
+    eprintln!(
+        "✓ EMG outlet: 4ch × 2000Hz, port {}",
+        emg_info.v4data_port()
+    );
 
     // ── Marker stream (1 channel, irregular) ──
-    let marker_info = StreamInfo::new("Markers", "Markers", 1, IRREGULAR_RATE, ChannelFormat::String, "marker_src");
+    let marker_info = StreamInfo::new(
+        "Markers",
+        "Markers",
+        1,
+        IRREGULAR_RATE,
+        ChannelFormat::String,
+        "marker_src",
+    );
     let marker_outlet = StreamOutlet::new(&marker_info, 0, 0);
-    eprintln!("✓ Marker outlet: 1ch, irregular, port {}", marker_info.v4data_port());
+    eprintln!(
+        "✓ Marker outlet: 1ch, irregular, port {}",
+        marker_info.v4data_port()
+    );
     eprintln!();
     eprintln!("Streaming... Ctrl-C to stop.");
 
@@ -51,7 +67,8 @@ fn main() -> anyhow::Result<()> {
         // EMG: push 2000/256 ≈ 8 samples per EEG sample
         if sample_idx % 1 == 0 {
             for ch in 0..4 {
-                emg_data[ch] = (50.0 * (2.0 * std::f64::consts::PI * 150.0 * t + ch as f64).sin()) as f32;
+                emg_data[ch] =
+                    (50.0 * (2.0 * std::f64::consts::PI * 150.0 * t + ch as f64).sin()) as f32;
             }
             emg_outlet.push_sample_f(&emg_data, 0.0, true);
         }

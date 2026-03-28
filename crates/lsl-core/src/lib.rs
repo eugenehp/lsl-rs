@@ -146,7 +146,8 @@ mod tests {
         assert!(info.matches_query("not(contains(name,'ZZZ'))"));
 
         // Combined
-        assert!(info.matches_query("starts-with(name,'My') and channel_count>4 and not(type='Markers')"));
+        assert!(info
+            .matches_query("starts-with(name,'My') and channel_count>4 and not(type='Markers')"));
 
         // Empty query
         assert!(info.matches_query(""));

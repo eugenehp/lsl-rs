@@ -1,14 +1,14 @@
 //! StreamInlet: receives data from the network.
 
-use crate::stream_info::StreamInfo;
 use crate::sample::Sample;
+use crate::stream_info::StreamInfo;
 use crate::types::*;
-use crossbeam_channel::{Receiver, bounded};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::time::Duration;
+use crossbeam_channel::{bounded, Receiver};
 use parking_lot::Mutex;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, AsyncBufReadExt, BufReader};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
 /// A stream inlet. Receives data from a stream outlet.
@@ -60,7 +60,9 @@ impl StreamInlet {
 
     /// Open the data stream (connect to the outlet's TCP port).
     pub fn open_stream(&self, timeout: f64) -> Result<(), String> {
-        if self.connected.load(Ordering::Relaxed) { return Ok(()); }
+        if self.connected.load(Ordering::Relaxed) {
+            return Ok(());
+        }
 
         let info = self.info.clone();
         let tx = self.sample_tx.clone();
@@ -85,14 +87,26 @@ impl StreamInlet {
                 rt.block_on(async move {
                     let mut current_info = info.clone();
                     loop {
-                        if shutdown.load(Ordering::Relaxed) { break; }
+                        if shutdown.load(Ordering::Relaxed) {
+                            break;
+                        }
                         match Self::connect_and_receive(
-                            &current_info, &tx, &connected, &shutdown, max_buflen, max_chunklen, &samples_avail,
-                        ).await {
+                            &current_info,
+                            &tx,
+                            &connected,
+                            &shutdown,
+                            max_buflen,
+                            max_chunklen,
+                            &samples_avail,
+                        )
+                        .await
+                        {
                             Ok(()) => break,
                             Err(e) => {
                                 connected.store(false, Ordering::SeqCst);
-                                if shutdown.load(Ordering::Relaxed) { break; }
+                                if shutdown.load(Ordering::Relaxed) {
+                                    break;
+                                }
                                 if !recover {
                                     log::trace!("[inlet] Connection lost, recovery disabled");
                                     break;
@@ -103,7 +117,9 @@ impl StreamInlet {
                                 let uid = source_uid.clone();
                                 match tokio::task::spawn_blocking(move || {
                                     crate::resolver::resolve_by_property("uid", &uid, 1, 3.0)
-                                }).await {
+                                })
+                                .await
+                                {
                                     Ok(found) if !found.is_empty() => {
                                         current_info = found.into_iter().next().unwrap();
                                         log::trace!("[inlet] Re-resolved, reconnecting...");
@@ -161,12 +177,19 @@ impl StreamInlet {
                 max_buflen,
                 max_chunklen,
             );
-            reader.get_mut().write_all(request.as_bytes()).await.map_err(|e| e.to_string())?;
+            reader
+                .get_mut()
+                .write_all(request.as_bytes())
+                .await
+                .map_err(|e| e.to_string())?;
             reader.get_mut().flush().await.map_err(|e| e.to_string())?;
 
             // Read response line
             let mut response_line = String::new();
-            reader.read_line(&mut response_line).await.map_err(|e| e.to_string())?;
+            reader
+                .read_line(&mut response_line)
+                .await
+                .map_err(|e| e.to_string())?;
             if !response_line.contains("200") {
                 return Err(format!("Server error: {}", response_line.trim()));
             }
@@ -174,12 +197,21 @@ impl StreamInlet {
             // Read response headers
             loop {
                 let mut line = String::new();
-                reader.read_line(&mut line).await.map_err(|e| e.to_string())?;
-                if line.trim().is_empty() { break; }
+                reader
+                    .read_line(&mut line)
+                    .await
+                    .map_err(|e| e.to_string())?;
+                if line.trim().is_empty() {
+                    break;
+                }
             }
         } else {
             let request = format!("LSL:streamfeed\r\n{} {}\r\n", max_buflen, max_chunklen);
-            reader.get_mut().write_all(request.as_bytes()).await.map_err(|e| e.to_string())?;
+            reader
+                .get_mut()
+                .write_all(request.as_bytes())
+                .await
+                .map_err(|e| e.to_string())?;
             reader.get_mut().flush().await.map_err(|e| e.to_string())?;
         }
 
@@ -205,7 +237,9 @@ impl StreamInlet {
         let mut last_timestamp = 0.0f64;
 
         loop {
-            if shutdown.load(Ordering::Relaxed) { break; }
+            if shutdown.load(Ordering::Relaxed) {
+                break;
+            }
 
             let mut sample = if use_proto_100 {
                 read_sample_async_100(&mut reader, fmt, nch).await?
@@ -238,7 +272,11 @@ impl StreamInlet {
         let v6_port = info.v6data_port();
         if v6_port > 0 {
             let v6_addr = info.v6address();
-            let host = if v6_addr.is_empty() { "::1".to_string() } else { v6_addr };
+            let host = if v6_addr.is_empty() {
+                "::1".to_string()
+            } else {
+                v6_addr
+            };
             let addr = format!("[{}]:{}", host, v6_port);
             log::trace!("[inlet] Trying IPv6 {}...", addr);
             match TcpStream::connect(&addr).await {
@@ -255,7 +293,11 @@ impl StreamInlet {
         // Fall back to IPv4
         let port = info.v4data_port();
         let addr_str = info.v4address();
-        let host = if addr_str.is_empty() { "127.0.0.1".to_string() } else { addr_str };
+        let host = if addr_str.is_empty() {
+            "127.0.0.1".to_string()
+        } else {
+            addr_str
+        };
         let addr = format!("{}:{}", host, port);
         log::trace!("[inlet] Connecting IPv4 {}...", addr);
         let stream = TcpStream::connect(&addr).await.map_err(|e| {
@@ -351,7 +393,10 @@ impl StreamInlet {
                 Err(_) => Err("channel closed".to_string()),
             }
         } else {
-            match self.sample_rx.recv_timeout(Duration::from_secs_f64(timeout)) {
+            match self
+                .sample_rx
+                .recv_timeout(Duration::from_secs_f64(timeout))
+            {
                 Ok(s) => Ok(Some(s)),
                 Err(crossbeam_channel::RecvTimeoutError::Timeout) => Ok(None),
                 Err(_) => Err("channel closed".to_string()),
@@ -378,7 +423,11 @@ impl StreamInlet {
     pub fn time_correction(&self, timeout: f64) -> f64 {
         let host = {
             let v4 = self.info.v4address();
-            if v4.is_empty() { "127.0.0.1".to_string() } else { v4 }
+            if v4.is_empty() {
+                "127.0.0.1".to_string()
+            } else {
+                v4
+            }
         };
         let port = self.info.v4service_port();
         let offset = crate::time_receiver::time_correction(&host, port, timeout);
@@ -390,7 +439,8 @@ impl StreamInlet {
         self.post_processing.store(flags, Ordering::Relaxed);
         let srate = self.info.nominal_srate();
         let halftime = crate::config::CONFIG.smoothing_halftime;
-        *self.postproc.lock() = crate::postproc::TimestampPostProcessor::new(flags, srate, halftime);
+        *self.postproc.lock() =
+            crate::postproc::TimestampPostProcessor::new(flags, srate, halftime);
     }
 
     pub fn samples_available(&self) -> u32 {
@@ -435,13 +485,19 @@ async fn read_sample_async(
     use crate::sample::SampleData;
 
     let mut tag = [0u8; 1];
-    reader.read_exact(&mut tag).await.map_err(|e| e.to_string())?;
+    reader
+        .read_exact(&mut tag)
+        .await
+        .map_err(|e| e.to_string())?;
 
     let timestamp = if tag[0] == TAG_DEDUCED_TIMESTAMP {
         DEDUCED_TIMESTAMP
     } else {
         let mut ts_bytes = [0u8; 8];
-        reader.read_exact(&mut ts_bytes).await.map_err(|e| e.to_string())?;
+        reader
+            .read_exact(&mut ts_bytes)
+            .await
+            .map_err(|e| e.to_string())?;
         f64::from_le_bytes(ts_bytes)
     };
 
@@ -449,39 +505,80 @@ async fn read_sample_async(
     let data = match fmt {
         ChannelFormat::Float32 => {
             let mut raw = vec![0u8; n * 4];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Float32(raw.chunks_exact(4).map(|c| f32::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Float32(
+                raw.chunks_exact(4)
+                    .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Double64 => {
             let mut raw = vec![0u8; n * 8];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Double64(raw.chunks_exact(8).map(|c| f64::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Double64(
+                raw.chunks_exact(8)
+                    .map(|c| f64::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int32 => {
             let mut raw = vec![0u8; n * 4];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int32(raw.chunks_exact(4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int32(
+                raw.chunks_exact(4)
+                    .map(|c| i32::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int16 => {
             let mut raw = vec![0u8; n * 2];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int16(raw.chunks_exact(2).map(|c| i16::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int16(
+                raw.chunks_exact(2)
+                    .map(|c| i16::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int8 => {
             let mut raw = vec![0u8; n];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
             SampleData::Int8(raw.into_iter().map(|b| b as i8).collect())
         }
         ChannelFormat::Int64 => {
             let mut raw = vec![0u8; n * 8];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int64(raw.chunks_exact(8).map(|c| i64::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int64(
+                raw.chunks_exact(8)
+                    .map(|c| i64::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::String | ChannelFormat::Undefined => {
             let mut strings = Vec::with_capacity(n);
             for _ in 0..n {
                 let mut lenbytes = [0u8; 1];
-                reader.read_exact(&mut lenbytes).await.map_err(|e| e.to_string())?;
+                reader
+                    .read_exact(&mut lenbytes)
+                    .await
+                    .map_err(|e| e.to_string())?;
                 let len: usize = match lenbytes[0] {
                     1 => {
                         let mut b = [0u8; 1];
@@ -501,14 +598,21 @@ async fn read_sample_async(
                     _ => return Err("invalid varlen int".to_string()),
                 };
                 let mut sbuf = vec![0u8; len];
-                reader.read_exact(&mut sbuf).await.map_err(|e| e.to_string())?;
+                reader
+                    .read_exact(&mut sbuf)
+                    .await
+                    .map_err(|e| e.to_string())?;
                 strings.push(String::from_utf8_lossy(&sbuf).into_owned());
             }
             SampleData::StringData(strings)
         }
     };
 
-    Ok(Sample { timestamp, pushthrough: true, data })
+    Ok(Sample {
+        timestamp,
+        pushthrough: true,
+        data,
+    })
 }
 
 /// Read a sample from an async reader using protocol 1.00 (always 8-byte timestamp, 4-byte string lengths).
@@ -521,55 +625,106 @@ async fn read_sample_async_100(
 
     // Protocol 1.00: always 8-byte timestamp
     let mut ts_bytes = [0u8; 8];
-    reader.read_exact(&mut ts_bytes).await.map_err(|e| e.to_string())?;
+    reader
+        .read_exact(&mut ts_bytes)
+        .await
+        .map_err(|e| e.to_string())?;
     let timestamp = f64::from_le_bytes(ts_bytes);
 
     let n = num_channels as usize;
     let data = match fmt {
         ChannelFormat::Float32 => {
             let mut raw = vec![0u8; n * 4];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Float32(raw.chunks_exact(4).map(|c| f32::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Float32(
+                raw.chunks_exact(4)
+                    .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Double64 => {
             let mut raw = vec![0u8; n * 8];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Double64(raw.chunks_exact(8).map(|c| f64::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Double64(
+                raw.chunks_exact(8)
+                    .map(|c| f64::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int32 => {
             let mut raw = vec![0u8; n * 4];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int32(raw.chunks_exact(4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int32(
+                raw.chunks_exact(4)
+                    .map(|c| i32::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int16 => {
             let mut raw = vec![0u8; n * 2];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int16(raw.chunks_exact(2).map(|c| i16::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int16(
+                raw.chunks_exact(2)
+                    .map(|c| i16::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::Int8 => {
             let mut raw = vec![0u8; n];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
             SampleData::Int8(raw.into_iter().map(|b| b as i8).collect())
         }
         ChannelFormat::Int64 => {
             let mut raw = vec![0u8; n * 8];
-            reader.read_exact(&mut raw).await.map_err(|e| e.to_string())?;
-            SampleData::Int64(raw.chunks_exact(8).map(|c| i64::from_le_bytes(c.try_into().unwrap())).collect())
+            reader
+                .read_exact(&mut raw)
+                .await
+                .map_err(|e| e.to_string())?;
+            SampleData::Int64(
+                raw.chunks_exact(8)
+                    .map(|c| i64::from_le_bytes(c.try_into().unwrap()))
+                    .collect(),
+            )
         }
         ChannelFormat::String | ChannelFormat::Undefined => {
             let mut strings = Vec::with_capacity(n);
             for _ in 0..n {
                 // Protocol 1.00: always 4-byte length
                 let mut len_bytes = [0u8; 4];
-                reader.read_exact(&mut len_bytes).await.map_err(|e| e.to_string())?;
+                reader
+                    .read_exact(&mut len_bytes)
+                    .await
+                    .map_err(|e| e.to_string())?;
                 let len = u32::from_le_bytes(len_bytes) as usize;
                 let mut sbuf = vec![0u8; len];
-                reader.read_exact(&mut sbuf).await.map_err(|e| e.to_string())?;
+                reader
+                    .read_exact(&mut sbuf)
+                    .await
+                    .map_err(|e| e.to_string())?;
                 strings.push(String::from_utf8_lossy(&sbuf).into_owned());
             }
             SampleData::StringData(strings)
         }
     };
 
-    Ok(Sample { timestamp, pushthrough: true, data })
+    Ok(Sample {
+        timestamp,
+        pushthrough: true,
+        data,
+    })
 }

@@ -107,13 +107,11 @@ mod inner {
                 .set_onmessage(Some(onmessage.as_ref().unchecked_ref()));
             onmessage.forget(); // prevent GC
 
-            let onerror = Closure::<dyn FnMut(web_sys::ErrorEvent)>::new(
-                move |e: web_sys::ErrorEvent| {
+            let onerror =
+                Closure::<dyn FnMut(web_sys::ErrorEvent)>::new(move |e: web_sys::ErrorEvent| {
                     web_sys::console::error_1(&format!("WS error: {:?}", e.message()).into());
-                },
-            );
-            self.ws
-                .set_onerror(Some(onerror.as_ref().unchecked_ref()));
+                });
+            self.ws.set_onerror(Some(onerror.as_ref().unchecked_ref()));
             onerror.forget();
         }
 

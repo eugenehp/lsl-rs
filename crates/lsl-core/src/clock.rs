@@ -2,8 +2,8 @@
 //!
 //! Uses std::time::Instant as a monotonic clock source with nanosecond precision.
 
-use std::time::Instant;
 use once_cell::sync::Lazy;
+use std::time::Instant;
 
 static EPOCH: Lazy<Instant> = Lazy::new(Instant::now);
 

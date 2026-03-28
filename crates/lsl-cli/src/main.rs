@@ -65,16 +65,12 @@ fn cmd_list(args: &[String]) -> Result<()> {
 
             // Clear screen
             eprint!("\x1b[2J\x1b[H");
-            eprintln!(
-                "╔═══════════════════════════════════════════════════════════════════╗"
-            );
+            eprintln!("╔═══════════════════════════════════════════════════════════════════╗");
             eprintln!(
                 "║  LSL Streams ({} found)                                          ║",
                 streams.len()
             );
-            eprintln!(
-                "╚═══════════════════════════════════════════════════════════════════╝"
-            );
+            eprintln!("╚═══════════════════════════════════════════════════════════════════╝");
             print_streams(&streams, json);
             std::thread::sleep(Duration::from_secs_f64(timeout));
         }
@@ -142,7 +138,14 @@ fn cmd_gen(args: &[String]) -> Result<()> {
     let freq: f64 = get_arg(args, "--freq", "10.0").parse()?;
     let amplitude: f64 = get_arg(args, "--amplitude", "100.0").parse()?;
 
-    let info = StreamInfo::new(&name, &type_, nch, srate, ChannelFormat::Float32, "lsl-cli-gen");
+    let info = StreamInfo::new(
+        &name,
+        &type_,
+        nch,
+        srate,
+        ChannelFormat::Float32,
+        "lsl-cli-gen",
+    );
     let outlet = StreamOutlet::new(&info, 0, 360);
 
     eprintln!("🎵 lsl gen — streaming:");
@@ -164,8 +167,7 @@ fn cmd_gen(args: &[String]) -> Result<()> {
                 "square" => amplitude * phase.sin().signum(),
                 "sawtooth" => amplitude * (2.0 * ((freq * t + ch as f64 * 0.1) % 1.0) - 1.0),
                 "noise" => {
-                    amplitude
-                        * (pseudo_random(sample_idx * nch as u64 + ch as u64) * 2.0 - 1.0)
+                    amplitude * (pseudo_random(sample_idx * nch as u64 + ch as u64) * 2.0 - 1.0)
                 }
                 "chirp" => {
                     let sweep = freq * (1.0 + 3.0 * (t % 10.0) / 10.0);
@@ -243,8 +245,7 @@ fn cmd_bench(args: &[String]) -> Result<()> {
         })
     };
 
-    let deadline =
-        std::time::Instant::now() + Duration::from_secs_f64(duration_secs + 2.0);
+    let deadline = std::time::Instant::now() + Duration::from_secs_f64(duration_secs + 2.0);
     let mut pulled = 0u64;
 
     while std::time::Instant::now() < deadline && pulled < n_samples {
@@ -285,22 +286,10 @@ fn cmd_bench(args: &[String]) -> Result<()> {
     eprintln!("  ║ Data rate: {:>9.2} MB/s            ║", data_rate);
     eprintln!("  ╠══════════════════════════════════════╣");
     eprintln!("  ║ Latency (push→pull):                ║");
-    eprintln!(
-        "  ║   mean: {:>9.3} ms                ║",
-        mean * 1000.0
-    );
-    eprintln!(
-        "  ║   p50:  {:>9.3} ms                ║",
-        p50 * 1000.0
-    );
-    eprintln!(
-        "  ║   p95:  {:>9.3} ms                ║",
-        p95 * 1000.0
-    );
-    eprintln!(
-        "  ║   p99:  {:>9.3} ms                ║",
-        p99 * 1000.0
-    );
+    eprintln!("  ║   mean: {:>9.3} ms                ║", mean * 1000.0);
+    eprintln!("  ║   p50:  {:>9.3} ms                ║", p50 * 1000.0);
+    eprintln!("  ║   p95:  {:>9.3} ms                ║", p95 * 1000.0);
+    eprintln!("  ║   p99:  {:>9.3} ms                ║", p99 * 1000.0);
     eprintln!("  ╚══════════════════════════════════════╝");
 
     Ok(())
@@ -310,7 +299,10 @@ fn cmd_bench(args: &[String]) -> Result<()> {
 
 fn cmd_version() -> Result<()> {
     println!("lsl {} (lsl-rs)", env!("CARGO_PKG_VERSION"));
-    println!("Protocol version: {}", lsl_core::types::LSL_PROTOCOL_VERSION);
+    println!(
+        "Protocol version: {}",
+        lsl_core::types::LSL_PROTOCOL_VERSION
+    );
     println!("Library version:  {}", lsl_core::types::LSL_LIBRARY_VERSION);
     Ok(())
 }

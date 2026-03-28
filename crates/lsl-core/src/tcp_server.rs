@@ -5,14 +5,14 @@
 //! - LSL:fullinfo  - returns full info XML
 //! - LSL:streamfeed/110 - negotiates and streams samples
 
-use crate::stream_info::StreamInfo;
-use crate::send_buffer::SendBuffer;
-use crate::sample::Sample;
 use crate::config::CONFIG;
-use std::sync::Arc;
+use crate::sample::Sample;
+use crate::send_buffer::SendBuffer;
+use crate::stream_info::StreamInfo;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncWriteExt, AsyncBufReadExt, BufReader};
 
 pub struct TcpServer {
     info: StreamInfo,
@@ -30,11 +30,7 @@ pub struct TcpPorts {
 impl TcpServer {
     /// Start the TCP server on both IPv4 and IPv6.
     /// Returns ports and a shared shutdown handle.
-    pub fn start(
-        info: StreamInfo,
-        send_buffer: Arc<SendBuffer>,
-        chunk_size: i32,
-    ) -> TcpPorts {
+    pub fn start(info: StreamInfo, send_buffer: Arc<SendBuffer>, chunk_size: i32) -> TcpPorts {
         let shutdown = Arc::new(AtomicBool::new(false));
 
         let server = Arc::new(TcpServer {
@@ -45,9 +41,9 @@ impl TcpServer {
 
         // --- IPv4 listener ---
         let v4_port = {
-            let listener = crate::RUNTIME.block_on(async {
-                TcpListener::bind("0.0.0.0:0").await
-            }).expect("Failed to bind TCPv4 server");
+            let listener = crate::RUNTIME
+                .block_on(async { TcpListener::bind("0.0.0.0:0").await })
+                .expect("Failed to bind TCPv4 server");
             let port = listener.local_addr().unwrap().port();
             let srv = server.clone();
             crate::RUNTIME.spawn(async move {
@@ -58,9 +54,7 @@ impl TcpServer {
 
         // --- IPv6 listener ---
         let v6_port = if crate::config::CONFIG.allow_ipv6 {
-            match crate::RUNTIME.block_on(async {
-                TcpListener::bind("[::]:0").await
-            }) {
+            match crate::RUNTIME.block_on(async { TcpListener::bind("[::]:0").await }) {
                 Ok(listener) => {
                     let port = listener.local_addr().unwrap().port();
                     let srv = server.clone();
@@ -75,7 +69,11 @@ impl TcpServer {
             0
         };
 
-        TcpPorts { v4_port, v6_port, shutdown }
+        TcpPorts {
+            v4_port,
+            v6_port,
+            shutdown,
+        }
     }
 
     async fn accept_loop(listener: TcpListener, server: Arc<TcpServer>, chunk_size: i32) {
@@ -116,7 +114,8 @@ impl TcpServer {
         } else if command == "LSL:fullinfo" {
             self.handle_fullinfo(&mut reader).await
         } else if command.starts_with("LSL:streamfeed") {
-            self.handle_streamfeed(&mut reader, &command, chunk_size).await
+            self.handle_streamfeed(&mut reader, &command, chunk_size)
+                .await
         } else {
             Ok(())
         }
@@ -154,7 +153,10 @@ impl TcpServer {
         if command.starts_with("LSL:streamfeed/") {
             // Parse version and optional UID from command line
             let parts: Vec<&str> = command.split_whitespace().collect();
-            if let Some(ver_str) = parts.first().and_then(|s| s.strip_prefix("LSL:streamfeed/")) {
+            if let Some(ver_str) = parts
+                .first()
+                .and_then(|s| s.strip_prefix("LSL:streamfeed/"))
+            {
                 data_protocol_version = ver_str.parse().unwrap_or(110);
             }
             if parts.len() > 1 {
@@ -166,14 +168,20 @@ impl TcpServer {
                 let mut line = String::new();
                 reader.read_line(&mut line).await?;
                 let trimmed = line.trim().to_string();
-                if trimmed.is_empty() { break; }
+                if trimmed.is_empty() {
+                    break;
+                }
                 let line = trimmed;
                 if let Some(colon) = line.find(':') {
                     let key = line[..colon].trim().to_lowercase();
                     let val = line[colon + 1..].trim().to_string();
                     match key.as_str() {
-                        "max-buffer-length" => { max_buffered = val.parse().unwrap_or(360); }
-                        "max-chunk-length" => { max_chunklen = val.parse().unwrap_or(0); }
+                        "max-buffer-length" => {
+                            max_buffered = val.parse().unwrap_or(360);
+                        }
+                        "max-chunk-length" => {
+                            max_chunklen = val.parse().unwrap_or(0);
+                        }
                         _ => {}
                     }
                 }
@@ -215,19 +223,29 @@ impl TcpServer {
         }
         reader.get_mut().flush().await?;
 
-        if max_buffered <= 0 { return Ok(()); }
+        if max_buffered <= 0 {
+            return Ok(());
+        }
 
         // Subscribe to the send buffer
         let consumer = self.send_buffer.new_consumer(max_buffered as usize);
 
-        let effective_chunk = if max_chunklen > 0 { max_chunklen } else if chunk_size > 0 { chunk_size } else { i32::MAX };
+        let effective_chunk = if max_chunklen > 0 {
+            max_chunklen
+        } else if chunk_size > 0 {
+            chunk_size
+        } else {
+            i32::MAX
+        };
 
         // Stream samples
         let mut chunk_count = 0;
         let mut chunk_buf = Vec::with_capacity(4096);
 
         loop {
-            if self.shutdown.load(Ordering::Relaxed) { break; }
+            if self.shutdown.load(Ordering::Relaxed) {
+                break;
+            }
 
             match consumer.recv_timeout(std::time::Duration::from_millis(100)) {
                 Ok(Some(sample)) => {

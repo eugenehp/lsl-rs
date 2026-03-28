@@ -3,7 +3,7 @@
 //! Samples are the unit of data transfer. Each contains a timestamp and channel data.
 
 use crate::types::*;
-use std::io::{Read, Result as IoResult, Error as IoError, ErrorKind};
+use std::io::{Error as IoError, ErrorKind, Read, Result as IoResult};
 
 /// A timestamped multi-channel sample.
 #[derive(Debug, Clone)]
@@ -40,7 +40,11 @@ impl Sample {
                 SampleData::StringData(vec![String::new(); n])
             }
         };
-        Sample { timestamp, pushthrough: true, data }
+        Sample {
+            timestamp,
+            pushthrough: true,
+            data,
+        }
     }
 
     /// Assign float data
@@ -48,22 +52,34 @@ impl Sample {
         match &mut self.data {
             SampleData::Float32(d) => d.copy_from_slice(src),
             SampleData::Double64(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f64; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f64;
+                }
             }
             SampleData::Int32(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i32; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i32;
+                }
             }
             SampleData::Int16(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i16; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i16;
+                }
             }
             SampleData::Int8(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i8; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i8;
+                }
             }
             SampleData::Int64(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i64; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i64;
+                }
             }
             SampleData::StringData(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
             }
         }
     }
@@ -73,22 +89,34 @@ impl Sample {
         match &self.data {
             SampleData::Float32(d) => dst.copy_from_slice(d),
             SampleData::Double64(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f32; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f32;
+                }
             }
             SampleData::Int32(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f32; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f32;
+                }
             }
             SampleData::Int16(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f32; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f32;
+                }
             }
             SampleData::Int8(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f32; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f32;
+                }
             }
             SampleData::Int64(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f32; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f32;
+                }
             }
             SampleData::StringData(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0.0); }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0.0);
+                }
             }
         }
     }
@@ -98,22 +126,34 @@ impl Sample {
         match &mut self.data {
             SampleData::Double64(d) => d.copy_from_slice(src),
             SampleData::Float32(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f32; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f32;
+                }
             }
             SampleData::Int32(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i32; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i32;
+                }
             }
             SampleData::Int16(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i16; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i16;
+                }
             }
             SampleData::Int8(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i8; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i8;
+                }
             }
             SampleData::Int64(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i64; }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i64;
+                }
             }
             SampleData::StringData(d) => {
-                for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); }
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
             }
         }
     }
@@ -123,22 +163,34 @@ impl Sample {
         match &self.data {
             SampleData::Double64(d) => dst.copy_from_slice(d),
             SampleData::Float32(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f64; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f64;
+                }
             }
             SampleData::Int32(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f64; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f64;
+                }
             }
             SampleData::Int16(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f64; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f64;
+                }
             }
             SampleData::Int8(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f64; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f64;
+                }
             }
             SampleData::Int64(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = *s as f64; }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as f64;
+                }
             }
             SampleData::StringData(d) => {
-                for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0.0); }
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0.0);
+                }
             }
         }
     }
@@ -146,96 +198,288 @@ impl Sample {
     pub fn assign_i32(&mut self, src: &[i32]) {
         match &mut self.data {
             SampleData::Int32(d) => d.copy_from_slice(src),
-            SampleData::Float32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f32; } }
-            SampleData::Double64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f64; } }
-            SampleData::Int16(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i16; } }
-            SampleData::Int8(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i8; } }
-            SampleData::Int64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i64; } }
-            SampleData::StringData(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); } }
+            SampleData::Float32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f32;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f64;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i16;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i8;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i64;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
+            }
         }
     }
 
     pub fn retrieve_i32(&self, dst: &mut [i32]) {
         match &self.data {
             SampleData::Int32(d) => dst.copy_from_slice(d),
-            SampleData::Float32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i32; } }
-            SampleData::Double64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i32; } }
-            SampleData::Int16(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i32; } }
-            SampleData::Int8(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i32; } }
-            SampleData::Int64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i32; } }
-            SampleData::StringData(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0); } }
+            SampleData::Float32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i32;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i32;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i32;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i32;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i32;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0);
+                }
+            }
         }
     }
 
     pub fn assign_i64(&mut self, src: &[i64]) {
         match &mut self.data {
             SampleData::Int64(d) => d.copy_from_slice(src),
-            SampleData::Float32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f32; } }
-            SampleData::Double64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f64; } }
-            SampleData::Int32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i32; } }
-            SampleData::Int16(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i16; } }
-            SampleData::Int8(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i8; } }
-            SampleData::StringData(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); } }
+            SampleData::Float32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f32;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f64;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i32;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i16;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i8;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
+            }
         }
     }
 
     pub fn retrieve_i64(&self, dst: &mut [i64]) {
         match &self.data {
             SampleData::Int64(d) => dst.copy_from_slice(d),
-            SampleData::Float32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i64; } }
-            SampleData::Double64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i64; } }
-            SampleData::Int32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i64; } }
-            SampleData::Int16(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i64; } }
-            SampleData::Int8(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i64; } }
-            SampleData::StringData(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0); } }
+            SampleData::Float32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i64;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i64;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i64;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i64;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i64;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0);
+                }
+            }
         }
     }
 
     pub fn assign_i16(&mut self, src: &[i16]) {
         match &mut self.data {
             SampleData::Int16(d) => d.copy_from_slice(src),
-            SampleData::Float32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f32; } }
-            SampleData::Double64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f64; } }
-            SampleData::Int32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i32; } }
-            SampleData::Int8(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i8; } }
-            SampleData::Int64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i64; } }
-            SampleData::StringData(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); } }
+            SampleData::Float32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f32;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f64;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i32;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i8;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i64;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
+            }
         }
     }
 
     pub fn retrieve_i16(&self, dst: &mut [i16]) {
         match &self.data {
             SampleData::Int16(d) => dst.copy_from_slice(d),
-            SampleData::Float32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i16; } }
-            SampleData::Double64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i16; } }
-            SampleData::Int32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i16; } }
-            SampleData::Int8(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i16; } }
-            SampleData::Int64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i16; } }
-            SampleData::StringData(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0); } }
+            SampleData::Float32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i16;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i16;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i16;
+                }
+            }
+            SampleData::Int8(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i16;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i16;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0);
+                }
+            }
         }
     }
 
     pub fn assign_i8(&mut self, src: &[i8]) {
         match &mut self.data {
             SampleData::Int8(d) => d.copy_from_slice(src),
-            SampleData::Float32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f32; } }
-            SampleData::Double64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as f64; } }
-            SampleData::Int32(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i32; } }
-            SampleData::Int16(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i16; } }
-            SampleData::Int64(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = *s as i64; } }
-            SampleData::StringData(d) => { for (dst, s) in d.iter_mut().zip(src) { *dst = s.to_string(); } }
+            SampleData::Float32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f32;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as f64;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i32;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i16;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = *s as i64;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (dst, s) in d.iter_mut().zip(src) {
+                    *dst = s.to_string();
+                }
+            }
         }
     }
 
     pub fn retrieve_i8(&self, dst: &mut [i8]) {
         match &self.data {
             SampleData::Int8(d) => dst.copy_from_slice(d),
-            SampleData::Float32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i8; } }
-            SampleData::Double64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i8; } }
-            SampleData::Int32(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i8; } }
-            SampleData::Int16(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i8; } }
-            SampleData::Int64(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = *s as i8; } }
-            SampleData::StringData(d) => { for (o, s) in dst.iter_mut().zip(d) { *o = s.parse().unwrap_or(0); } }
+            SampleData::Float32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i8;
+                }
+            }
+            SampleData::Double64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i8;
+                }
+            }
+            SampleData::Int32(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i8;
+                }
+            }
+            SampleData::Int16(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i8;
+                }
+            }
+            SampleData::Int64(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = *s as i8;
+                }
+            }
+            SampleData::StringData(d) => {
+                for (o, s) in dst.iter_mut().zip(d) {
+                    *o = s.parse().unwrap_or(0);
+                }
+            }
         }
     }
 
@@ -265,7 +509,12 @@ impl Sample {
                 for (i, v) in d.iter_mut().enumerate() {
                     let off = i * 4;
                     if off + 4 <= data.len() {
-                        *v = f32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]);
+                        *v = f32::from_le_bytes([
+                            data[off],
+                            data[off + 1],
+                            data[off + 2],
+                            data[off + 3],
+                        ]);
                     }
                 }
             }
@@ -273,7 +522,7 @@ impl Sample {
                 for (i, v) in d.iter_mut().enumerate() {
                     let off = i * 8;
                     if off + 8 <= data.len() {
-                        *v = f64::from_le_bytes(data[off..off+8].try_into().unwrap());
+                        *v = f64::from_le_bytes(data[off..off + 8].try_into().unwrap());
                     }
                 }
             }
@@ -281,7 +530,12 @@ impl Sample {
                 for (i, v) in d.iter_mut().enumerate() {
                     let off = i * 4;
                     if off + 4 <= data.len() {
-                        *v = i32::from_le_bytes([data[off], data[off+1], data[off+2], data[off+3]]);
+                        *v = i32::from_le_bytes([
+                            data[off],
+                            data[off + 1],
+                            data[off + 2],
+                            data[off + 3],
+                        ]);
                     }
                 }
             }
@@ -289,7 +543,7 @@ impl Sample {
                 for (i, v) in d.iter_mut().enumerate() {
                     let off = i * 2;
                     if off + 2 <= data.len() {
-                        *v = i16::from_le_bytes([data[off], data[off+1]]);
+                        *v = i16::from_le_bytes([data[off], data[off + 1]]);
                     }
                 }
             }
@@ -304,7 +558,7 @@ impl Sample {
                 for (i, v) in d.iter_mut().enumerate() {
                     let off = i * 8;
                     if off + 8 <= data.len() {
-                        *v = i64::from_le_bytes(data[off..off+8].try_into().unwrap());
+                        *v = i64::from_le_bytes(data[off..off + 8].try_into().unwrap());
                     }
                 }
             }
@@ -358,7 +612,11 @@ impl Sample {
     }
 
     /// Deserialize a sample from a reader (protocol 1.10, little-endian).
-    pub fn deserialize_110<R: Read>(reader: &mut R, fmt: ChannelFormat, num_channels: u32) -> IoResult<Sample> {
+    pub fn deserialize_110<R: Read>(
+        reader: &mut R,
+        fmt: ChannelFormat,
+        num_channels: u32,
+    ) -> IoResult<Sample> {
         let mut tag = [0u8; 1];
         reader.read_exact(&mut tag)?;
 
@@ -375,22 +633,38 @@ impl Sample {
             ChannelFormat::Float32 => {
                 let mut raw = vec![0u8; n * 4];
                 reader.read_exact(&mut raw)?;
-                SampleData::Float32(raw.chunks_exact(4).map(|c| f32::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Float32(
+                    raw.chunks_exact(4)
+                        .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Double64 => {
                 let mut raw = vec![0u8; n * 8];
                 reader.read_exact(&mut raw)?;
-                SampleData::Double64(raw.chunks_exact(8).map(|c| f64::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Double64(
+                    raw.chunks_exact(8)
+                        .map(|c| f64::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int32 => {
                 let mut raw = vec![0u8; n * 4];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int32(raw.chunks_exact(4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int32(
+                    raw.chunks_exact(4)
+                        .map(|c| i32::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int16 => {
                 let mut raw = vec![0u8; n * 2];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int16(raw.chunks_exact(2).map(|c| i16::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int16(
+                    raw.chunks_exact(2)
+                        .map(|c| i16::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int8 => {
                 let mut raw = vec![0u8; n];
@@ -400,7 +674,11 @@ impl Sample {
             ChannelFormat::Int64 => {
                 let mut raw = vec![0u8; n * 8];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int64(raw.chunks_exact(8).map(|c| i64::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int64(
+                    raw.chunks_exact(8)
+                        .map(|c| i64::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::String | ChannelFormat::Undefined => {
                 let mut strings = Vec::with_capacity(n);
@@ -423,7 +701,9 @@ impl Sample {
                             reader.read_exact(&mut b)?;
                             u64::from_le_bytes(b) as usize
                         }
-                        _ => return Err(IoError::new(ErrorKind::InvalidData, "invalid varlen int")),
+                        _ => {
+                            return Err(IoError::new(ErrorKind::InvalidData, "invalid varlen int"))
+                        }
                     };
                     let mut sbuf = vec![0u8; len];
                     reader.read_exact(&mut sbuf)?;
@@ -433,7 +713,11 @@ impl Sample {
             }
         };
 
-        Ok(Sample { timestamp, pushthrough: true, data })
+        Ok(Sample {
+            timestamp,
+            pushthrough: true,
+            data,
+        })
     }
 
     /// Serialize a sample to bytes (protocol 1.00).
@@ -458,7 +742,11 @@ impl Sample {
     }
 
     /// Deserialize a sample from a reader (protocol 1.00).
-    pub fn deserialize_100<R: Read>(reader: &mut R, fmt: ChannelFormat, num_channels: u32) -> IoResult<Sample> {
+    pub fn deserialize_100<R: Read>(
+        reader: &mut R,
+        fmt: ChannelFormat,
+        num_channels: u32,
+    ) -> IoResult<Sample> {
         // Always read 8-byte timestamp
         let mut ts_bytes = [0u8; 8];
         reader.read_exact(&mut ts_bytes)?;
@@ -469,22 +757,38 @@ impl Sample {
             ChannelFormat::Float32 => {
                 let mut raw = vec![0u8; n * 4];
                 reader.read_exact(&mut raw)?;
-                SampleData::Float32(raw.chunks_exact(4).map(|c| f32::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Float32(
+                    raw.chunks_exact(4)
+                        .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Double64 => {
                 let mut raw = vec![0u8; n * 8];
                 reader.read_exact(&mut raw)?;
-                SampleData::Double64(raw.chunks_exact(8).map(|c| f64::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Double64(
+                    raw.chunks_exact(8)
+                        .map(|c| f64::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int32 => {
                 let mut raw = vec![0u8; n * 4];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int32(raw.chunks_exact(4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int32(
+                    raw.chunks_exact(4)
+                        .map(|c| i32::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int16 => {
                 let mut raw = vec![0u8; n * 2];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int16(raw.chunks_exact(2).map(|c| i16::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int16(
+                    raw.chunks_exact(2)
+                        .map(|c| i16::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::Int8 => {
                 let mut raw = vec![0u8; n];
@@ -494,7 +798,11 @@ impl Sample {
             ChannelFormat::Int64 => {
                 let mut raw = vec![0u8; n * 8];
                 reader.read_exact(&mut raw)?;
-                SampleData::Int64(raw.chunks_exact(8).map(|c| i64::from_le_bytes(c.try_into().unwrap())).collect())
+                SampleData::Int64(
+                    raw.chunks_exact(8)
+                        .map(|c| i64::from_le_bytes(c.try_into().unwrap()))
+                        .collect(),
+                )
             }
             ChannelFormat::String | ChannelFormat::Undefined => {
                 let mut strings = Vec::with_capacity(n);
@@ -510,7 +818,11 @@ impl Sample {
             }
         };
 
-        Ok(Sample { timestamp, pushthrough: true, data })
+        Ok(Sample {
+            timestamp,
+            pushthrough: true,
+            data,
+        })
     }
 
     /// Generate a test pattern matching liblsl's assign_test_pattern
@@ -591,7 +903,9 @@ impl Sample {
 
 impl PartialEq for Sample {
     fn eq(&self, other: &Self) -> bool {
-        if self.timestamp != other.timestamp { return false; }
+        if self.timestamp != other.timestamp {
+            return false;
+        }
         match (&self.data, &other.data) {
             (SampleData::Float32(a), SampleData::Float32(b)) => a == b,
             (SampleData::Double64(a), SampleData::Double64(b)) => a == b,

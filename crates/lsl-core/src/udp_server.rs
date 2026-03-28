@@ -6,28 +6,27 @@
 //!
 //! Supports both IPv4 and IPv6.
 
-use crate::stream_info::StreamInfo;
 use crate::clock::local_clock;
 use crate::config::CONFIG;
-use std::sync::Arc;
+use crate::stream_info::StreamInfo;
+use socket2::{Domain, Protocol, Socket, Type};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::net::{SocketAddr, Ipv4Addr, Ipv6Addr, IpAddr};
+use std::sync::Arc;
 use tokio::net::UdpSocket;
-use socket2::{Socket, Domain, Type, Protocol};
 
 pub struct UdpServer;
 
 impl UdpServer {
     /// Start the unicast UDP service (time sync + shortinfo on a dedicated port).
     /// Binds on both IPv4 and IPv6. Returns (v4_port, v6_port).
-    pub fn start_unicast(
-        info: StreamInfo,
-        shutdown: Arc<AtomicBool>,
-    ) -> (u16, u16) {
+    pub fn start_unicast(info: StreamInfo, shutdown: Arc<AtomicBool>) -> (u16, u16) {
         // --- IPv4 unicast ---
         let v4_port = {
             let socket = crate::RUNTIME.block_on(async {
-                UdpSocket::bind("0.0.0.0:0").await.expect("Failed to bind UDPv4 service socket")
+                UdpSocket::bind("0.0.0.0:0")
+                    .await
+                    .expect("Failed to bind UDPv4 service socket")
             });
             let port = socket.local_addr().unwrap().port();
             let shortinfo = info.to_shortinfo_message();
@@ -42,9 +41,7 @@ impl UdpServer {
 
         // --- IPv6 unicast ---
         let v6_port = if CONFIG.allow_ipv6 {
-            match crate::RUNTIME.block_on(async {
-                UdpSocket::bind("[::]:0").await
-            }) {
+            match crate::RUNTIME.block_on(async { UdpSocket::bind("[::]:0").await }) {
                 Ok(socket) => {
                     let port = socket.local_addr().unwrap().port();
                     let shortinfo = info.to_shortinfo_message();
@@ -67,10 +64,7 @@ impl UdpServer {
 
     /// Start multicast/broadcast responders on the multicast port.
     /// Creates listeners for both IPv4 and IPv6 multicast groups.
-    pub fn start_multicast(
-        info: StreamInfo,
-        shutdown: Arc<AtomicBool>,
-    ) {
+    pub fn start_multicast(info: StreamInfo, shutdown: Arc<AtomicBool>) {
         let shortinfo = info.to_shortinfo_message();
 
         for &addr in &CONFIG.multicast_addresses {
@@ -134,7 +128,9 @@ async fn run_unicast_loop(
 ) {
     let mut buf = vec![0u8; 65536];
     loop {
-        if shutdown.load(Ordering::Relaxed) { break; }
+        if shutdown.load(Ordering::Relaxed) {
+            break;
+        }
         tokio::select! {
             result = socket.recv_from(&mut buf) => {
                 if let Ok((len, addr)) = result {

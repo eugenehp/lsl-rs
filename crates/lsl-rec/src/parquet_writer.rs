@@ -89,7 +89,13 @@ impl StreamWriter {
         let safe_name: String = info
             .name()
             .chars()
-            .map(|c| if c.is_alphanumeric() || c == '_' { c } else { '_' })
+            .map(|c| {
+                if c.is_alphanumeric() || c == '_' {
+                    c
+                } else {
+                    '_'
+                }
+            })
             .collect();
         let parquet_filename = format!("stream_{}_{}.parquet", stream_id, safe_name);
         let path = dir.join(&parquet_filename);
@@ -126,7 +132,12 @@ impl StreamWriter {
     }
 
     /// Append samples. `data` is flat [s0_ch0, s0_ch1, …, s1_ch0, …].
-    fn append<T: NumericSample + ToF64>(&mut self, timestamps: &[f64], data: &[T], nch: u32) -> anyhow::Result<()> {
+    fn append<T: NumericSample + ToF64>(
+        &mut self,
+        timestamps: &[f64],
+        data: &[T],
+        nch: u32,
+    ) -> anyhow::Result<()> {
         let n = timestamps.len();
         assert_eq!(data.len(), n * nch as usize);
         for i in 0..n {
@@ -157,29 +168,19 @@ impl StreamWriter {
         for ch in 0..nch {
             let col_data: Vec<f64> = (0..n).map(|s| data[s * nch + ch]).collect();
             let array: ArrayRef = match self.format {
-                ChannelFormat::Float32 => {
-                    std::sync::Arc::new(Float32Array::from(
-                        col_data.iter().map(|&v| v as f32).collect::<Vec<f32>>(),
-                    ))
-                }
-                ChannelFormat::Double64 => {
-                    std::sync::Arc::new(Float64Array::from(col_data))
-                }
-                ChannelFormat::Int16 => {
-                    std::sync::Arc::new(Int16Array::from(
-                        col_data.iter().map(|&v| v as i16).collect::<Vec<i16>>(),
-                    ))
-                }
-                ChannelFormat::Int32 => {
-                    std::sync::Arc::new(Int32Array::from(
-                        col_data.iter().map(|&v| v as i32).collect::<Vec<i32>>(),
-                    ))
-                }
-                ChannelFormat::Int64 => {
-                    std::sync::Arc::new(Int64Array::from(
-                        col_data.iter().map(|&v| v as i64).collect::<Vec<i64>>(),
-                    ))
-                }
+                ChannelFormat::Float32 => std::sync::Arc::new(Float32Array::from(
+                    col_data.iter().map(|&v| v as f32).collect::<Vec<f32>>(),
+                )),
+                ChannelFormat::Double64 => std::sync::Arc::new(Float64Array::from(col_data)),
+                ChannelFormat::Int16 => std::sync::Arc::new(Int16Array::from(
+                    col_data.iter().map(|&v| v as i16).collect::<Vec<i16>>(),
+                )),
+                ChannelFormat::Int32 => std::sync::Arc::new(Int32Array::from(
+                    col_data.iter().map(|&v| v as i32).collect::<Vec<i32>>(),
+                )),
+                ChannelFormat::Int64 => std::sync::Arc::new(Int64Array::from(
+                    col_data.iter().map(|&v| v as i64).collect::<Vec<i64>>(),
+                )),
                 _ => {
                     // fallback to f64
                     std::sync::Arc::new(Float64Array::from(col_data))
@@ -231,7 +232,12 @@ impl ParquetRecordingWriter {
     }
 
     /// Register a stream and create its Parquet file. Call before writing samples.
-    pub fn write_stream_header(&self, stream_id: u32, info: &StreamInfo, header_xml: &str) -> anyhow::Result<()> {
+    pub fn write_stream_header(
+        &self,
+        stream_id: u32,
+        info: &StreamInfo,
+        header_xml: &str,
+    ) -> anyhow::Result<()> {
         let channel_labels = extract_channel_labels(info);
         let sw = StreamWriter::new(&self.dir, stream_id, info, &channel_labels)?;
 
@@ -289,7 +295,11 @@ impl ParquetRecordingWriter {
         offset_value: f64,
     ) -> anyhow::Result<()> {
         let mut sidecar = self.sidecar.lock().unwrap();
-        if let Some(entry) = sidecar.streams.iter_mut().find(|s| s.stream_id == stream_id) {
+        if let Some(entry) = sidecar
+            .streams
+            .iter_mut()
+            .find(|s| s.stream_id == stream_id)
+        {
             entry.clock_offsets.push((collection_time, offset_value));
         }
         Ok(())
@@ -304,7 +314,11 @@ impl ParquetRecordingWriter {
         sample_count: u64,
     ) -> anyhow::Result<()> {
         let mut sidecar = self.sidecar.lock().unwrap();
-        if let Some(entry) = sidecar.streams.iter_mut().find(|s| s.stream_id == stream_id) {
+        if let Some(entry) = sidecar
+            .streams
+            .iter_mut()
+            .find(|s| s.stream_id == stream_id)
+        {
             entry.first_timestamp = first_ts;
             entry.last_timestamp = last_ts;
             entry.sample_count = sample_count;
@@ -375,20 +389,32 @@ pub trait ToF64 {
 }
 
 impl ToF64 for f32 {
-    fn to_f64(&self) -> f64 { *self as f64 }
+    fn to_f64(&self) -> f64 {
+        *self as f64
+    }
 }
 impl ToF64 for f64 {
-    fn to_f64(&self) -> f64 { *self }
+    fn to_f64(&self) -> f64 {
+        *self
+    }
 }
 impl ToF64 for i16 {
-    fn to_f64(&self) -> f64 { *self as f64 }
+    fn to_f64(&self) -> f64 {
+        *self as f64
+    }
 }
 impl ToF64 for i32 {
-    fn to_f64(&self) -> f64 { *self as f64 }
+    fn to_f64(&self) -> f64 {
+        *self as f64
+    }
 }
 impl ToF64 for i64 {
-    fn to_f64(&self) -> f64 { *self as f64 }
+    fn to_f64(&self) -> f64 {
+        *self as f64
+    }
 }
 impl ToF64 for i8 {
-    fn to_f64(&self) -> f64 { *self as f64 }
+    fn to_f64(&self) -> f64 {
+        *self as f64
+    }
 }

@@ -43,7 +43,9 @@ impl ApiConfig {
         };
 
         let get_bool = |key: &str, default: bool| -> bool {
-            get(key).map(|v| v == "1" || v.eq_ignore_ascii_case("true")).unwrap_or(default)
+            get(key)
+                .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+                .unwrap_or(default)
         };
         let get_u16 = |key: &str, default: u16| -> u16 {
             get(key).and_then(|v| v.parse().ok()).unwrap_or(default)
@@ -144,7 +146,11 @@ fn parse_ini(contents: &str) -> HashMap<String, String> {
     let mut map = HashMap::new();
     for line in contents.lines() {
         let line = line.trim();
-        if line.is_empty() || line.starts_with('#') || line.starts_with(';') || line.starts_with('[') {
+        if line.is_empty()
+            || line.starts_with('#')
+            || line.starts_with(';')
+            || line.starts_with('[')
+        {
             continue;
         }
         if let Some(eq) = line.find('=') {

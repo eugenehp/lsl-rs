@@ -6,14 +6,16 @@
 
 use anyhow::Result;
 use crossterm::event::{Event, EventStream, KeyCode, KeyModifiers};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::execute;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
 use futures::StreamExt;
 use lsl_core::clock::local_clock;
 use lsl_core::resolver;
 use lsl_core::stream_info::StreamInfo;
-use lsl_rec::recording::{Recording, RecordingFormat};
 use lsl_rec::markers::MarkerOutlet;
+use lsl_rec::recording::{Recording, RecordingFormat};
 use ratatui::prelude::*;
 use ratatui::widgets::*;
 use std::io::stdout;
@@ -77,11 +79,16 @@ impl App {
                     let mut new_list: Vec<StreamEntry> = Vec::new();
                     for info in found {
                         let uid = info.uid();
-                        let was_checked = self.streams.iter()
+                        let was_checked = self
+                            .streams
+                            .iter()
                             .find(|s| s.info.uid() == uid)
                             .map(|s| s.checked)
                             .unwrap_or(false);
-                        new_list.push(StreamEntry { info, checked: was_checked });
+                        new_list.push(StreamEntry {
+                            info,
+                            checked: was_checked,
+                        });
                     }
                     self.streams = new_list;
                     self.status_msg = format!(
@@ -119,7 +126,9 @@ impl App {
             self.status_msg = "Already recording!".into();
             return;
         }
-        let selected: Vec<StreamInfo> = self.streams.iter()
+        let selected: Vec<StreamInfo> = self
+            .streams
+            .iter()
             .filter(|s| s.checked)
             .map(|s| s.info.clone())
             .collect();
@@ -151,14 +160,24 @@ impl App {
             let fmt = rec.format;
             let size = rec.file_size();
             rec.stop().await;
-            self.status_msg = format!("Stopped [{}]. Saved {} ({} KB)", fmt.as_str(), fname, size / 1024);
+            self.status_msg = format!(
+                "Stopped [{}]. Saved {} ({} KB)",
+                fmt.as_str(),
+                fname,
+                size / 1024
+            );
         }
     }
 
     fn elapsed_str(&self) -> String {
         if self.recording.is_some() {
             let secs = (local_clock() - self.start_time).max(0.0) as u64;
-            format!("{:02}:{:02}:{:02}", secs / 3600, (secs / 60) % 60, secs % 60)
+            format!(
+                "{:02}:{:02}:{:02}",
+                secs / 3600,
+                (secs / 60) % 60,
+                secs % 60
+            )
         } else {
             "—".into()
         }
@@ -279,7 +298,11 @@ fn ui(f: &mut Frame, app: &App) {
         app.format.as_str()
     };
     let title = Paragraph::new(format!(" lsl-rec — LSL Recorder  [format: {}]", fmt_label))
-        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        )
         .block(Block::default().borders(Borders::ALL));
     f.render_widget(title, chunks[0]);
 
@@ -300,7 +323,9 @@ fn ui(f: &mut Frame, app: &App) {
                 s.info.channel_format().as_str(),
             );
             let style = if i == app.selected {
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
             } else if s.checked {
                 Style::default().fg(Color::Green)
             } else {
@@ -320,8 +345,12 @@ fn ui(f: &mut Frame, app: &App) {
     // ── recording info ──
     let rec_text = if let Some(ref rec) = app.recording {
         let state = rec.state.as_ref();
-        let samples = state.sample_count.load(std::sync::atomic::Ordering::Relaxed);
-        let streams = state.stream_count.load(std::sync::atomic::Ordering::Relaxed);
+        let samples = state
+            .sample_count
+            .load(std::sync::atomic::Ordering::Relaxed);
+        let streams = state
+            .stream_count
+            .load(std::sync::atomic::Ordering::Relaxed);
         let size_kb = rec.file_size() / 1024;
         format!(
             " ● RECORDING [{}]  {}  |  {} streams  |  {} samples  |  {} KB",
@@ -345,8 +374,11 @@ fn ui(f: &mut Frame, app: &App) {
     f.render_widget(rec_widget, chunks[2]);
 
     // ── status bar ──
-    let status = Paragraph::new(format!(" {}  |  q=quit  Enter=start/stop  f=format", app.status_msg))
-        .style(Style::default().fg(Color::White))
-        .block(Block::default().borders(Borders::ALL));
+    let status = Paragraph::new(format!(
+        " {}  |  q=quit  Enter=start/stop  f=format",
+        app.status_msg
+    ))
+    .style(Style::default().fg(Color::White))
+    .block(Block::default().borders(Borders::ALL));
     f.render_widget(status, chunks[3]);
 }

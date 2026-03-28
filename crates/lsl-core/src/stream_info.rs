@@ -1,10 +1,10 @@
 //! StreamInfo: describes the properties of a data stream.
 
-use crate::types::*;
-use crate::xml_dom::{XmlNode, xml_unescape};
 use crate::config::CONFIG;
-use std::sync::Arc;
+use crate::types::*;
+use crate::xml_dom::{xml_unescape, XmlNode};
 use parking_lot::Mutex;
+use std::sync::Arc;
 
 /// Stream information. Describes the properties of a data stream.
 /// Shared via Arc so it can be safely passed between outlet/inlet/server components.
@@ -75,25 +75,61 @@ impl StreamInfo {
 
     // === Accessors ===
 
-    pub fn name(&self) -> String { self.inner.lock().name.clone() }
-    pub fn type_(&self) -> String { self.inner.lock().type_.clone() }
-    pub fn channel_count(&self) -> u32 { self.inner.lock().channel_count }
-    pub fn nominal_srate(&self) -> f64 { self.inner.lock().nominal_srate }
-    pub fn channel_format(&self) -> ChannelFormat { self.inner.lock().channel_format }
-    pub fn source_id(&self) -> String { self.inner.lock().source_id.clone() }
-    pub fn version(&self) -> i32 { self.inner.lock().version }
-    pub fn uid(&self) -> String { self.inner.lock().uid.clone() }
-    pub fn created_at(&self) -> f64 { self.inner.lock().created_at }
-    pub fn session_id(&self) -> String { self.inner.lock().session_id.clone() }
-    pub fn hostname(&self) -> String { self.inner.lock().hostname.clone() }
-    pub fn v4address(&self) -> String { self.inner.lock().v4address.clone() }
-    pub fn v4data_port(&self) -> u16 { self.inner.lock().v4data_port }
-    pub fn v4service_port(&self) -> u16 { self.inner.lock().v4service_port }
-    pub fn v6address(&self) -> String { self.inner.lock().v6address.clone() }
-    pub fn v6data_port(&self) -> u16 { self.inner.lock().v6data_port }
-    pub fn v6service_port(&self) -> u16 { self.inner.lock().v6service_port }
+    pub fn name(&self) -> String {
+        self.inner.lock().name.clone()
+    }
+    pub fn type_(&self) -> String {
+        self.inner.lock().type_.clone()
+    }
+    pub fn channel_count(&self) -> u32 {
+        self.inner.lock().channel_count
+    }
+    pub fn nominal_srate(&self) -> f64 {
+        self.inner.lock().nominal_srate
+    }
+    pub fn channel_format(&self) -> ChannelFormat {
+        self.inner.lock().channel_format
+    }
+    pub fn source_id(&self) -> String {
+        self.inner.lock().source_id.clone()
+    }
+    pub fn version(&self) -> i32 {
+        self.inner.lock().version
+    }
+    pub fn uid(&self) -> String {
+        self.inner.lock().uid.clone()
+    }
+    pub fn created_at(&self) -> f64 {
+        self.inner.lock().created_at
+    }
+    pub fn session_id(&self) -> String {
+        self.inner.lock().session_id.clone()
+    }
+    pub fn hostname(&self) -> String {
+        self.inner.lock().hostname.clone()
+    }
+    pub fn v4address(&self) -> String {
+        self.inner.lock().v4address.clone()
+    }
+    pub fn v4data_port(&self) -> u16 {
+        self.inner.lock().v4data_port
+    }
+    pub fn v4service_port(&self) -> u16 {
+        self.inner.lock().v4service_port
+    }
+    pub fn v6address(&self) -> String {
+        self.inner.lock().v6address.clone()
+    }
+    pub fn v6data_port(&self) -> u16 {
+        self.inner.lock().v6data_port
+    }
+    pub fn v6service_port(&self) -> u16 {
+        self.inner.lock().v6service_port
+    }
 
-    pub fn channel_bytes(&self) -> usize { self.inner.lock().channel_format.channel_bytes() }
+    pub fn channel_bytes(&self) -> usize {
+        self.inner.lock().channel_format.channel_bytes()
+    }
     pub fn sample_bytes(&self) -> usize {
         let d = self.inner.lock();
         d.channel_format.channel_bytes() * d.channel_count as usize
@@ -106,20 +142,48 @@ impl StreamInfo {
 
     // === Setters ===
 
-    pub fn set_uid(&self, uid: &str) { self.inner.lock().uid = uid.to_string(); }
-    pub fn set_created_at(&self, t: f64) { self.inner.lock().created_at = t; }
-    pub fn set_session_id(&self, s: &str) { self.inner.lock().session_id = s.to_string(); }
-    pub fn set_hostname(&self, s: &str) { self.inner.lock().hostname = s.to_string(); }
-    pub fn set_v4address(&self, s: &str) { self.inner.lock().v4address = s.to_string(); }
-    pub fn set_v4data_port(&self, p: u16) { self.inner.lock().v4data_port = p; }
-    pub fn set_v4service_port(&self, p: u16) { self.inner.lock().v4service_port = p; }
-    pub fn set_v6address(&self, s: &str) { self.inner.lock().v6address = s.to_string(); }
-    pub fn set_v6data_port(&self, p: u16) { self.inner.lock().v6data_port = p; }
-    pub fn set_v6service_port(&self, p: u16) { self.inner.lock().v6service_port = p; }
-    pub fn set_channel_format(&self, fmt: ChannelFormat) { self.inner.lock().channel_format = fmt; }
-    pub fn set_source_id(&self, s: &str) { self.inner.lock().source_id = s.to_string(); }
-    pub fn set_version(&self, v: i32) { self.inner.lock().version = v; }
-    pub fn set_name(&self, s: &str) { self.inner.lock().name = s.to_string(); }
+    pub fn set_uid(&self, uid: &str) {
+        self.inner.lock().uid = uid.to_string();
+    }
+    pub fn set_created_at(&self, t: f64) {
+        self.inner.lock().created_at = t;
+    }
+    pub fn set_session_id(&self, s: &str) {
+        self.inner.lock().session_id = s.to_string();
+    }
+    pub fn set_hostname(&self, s: &str) {
+        self.inner.lock().hostname = s.to_string();
+    }
+    pub fn set_v4address(&self, s: &str) {
+        self.inner.lock().v4address = s.to_string();
+    }
+    pub fn set_v4data_port(&self, p: u16) {
+        self.inner.lock().v4data_port = p;
+    }
+    pub fn set_v4service_port(&self, p: u16) {
+        self.inner.lock().v4service_port = p;
+    }
+    pub fn set_v6address(&self, s: &str) {
+        self.inner.lock().v6address = s.to_string();
+    }
+    pub fn set_v6data_port(&self, p: u16) {
+        self.inner.lock().v6data_port = p;
+    }
+    pub fn set_v6service_port(&self, p: u16) {
+        self.inner.lock().v6service_port = p;
+    }
+    pub fn set_channel_format(&self, fmt: ChannelFormat) {
+        self.inner.lock().channel_format = fmt;
+    }
+    pub fn set_source_id(&self, s: &str) {
+        self.inner.lock().source_id = s.to_string();
+    }
+    pub fn set_version(&self, v: i32) {
+        self.inner.lock().version = v;
+    }
+    pub fn set_name(&self, s: &str) {
+        self.inner.lock().name = s.to_string();
+    }
 
     /// Reset the UID to a new random value
     pub fn reset_uid(&self) -> String {
@@ -139,7 +203,11 @@ impl StreamInfo {
         append_field(&mut xml, "channel_format", d.channel_format.as_str());
         append_field(&mut xml, "source_id", &d.source_id);
         append_field(&mut xml, "nominal_srate", &format!("{}", d.nominal_srate));
-        append_field(&mut xml, "version", &format!("{}", d.version as f64 / 100.0));
+        append_field(
+            &mut xml,
+            "version",
+            &format!("{}", d.version as f64 / 100.0),
+        );
         append_field(&mut xml, "created_at", &format!("{}", d.created_at));
         append_field(&mut xml, "uid", &d.uid);
         append_field(&mut xml, "session_id", &d.session_id);
@@ -166,7 +234,11 @@ impl StreamInfo {
         append_field(&mut xml, "channel_format", d.channel_format.as_str());
         append_field(&mut xml, "source_id", &d.source_id);
         append_field(&mut xml, "nominal_srate", &format!("{}", d.nominal_srate));
-        append_field(&mut xml, "version", &format!("{}", d.version as f64 / 100.0));
+        append_field(
+            &mut xml,
+            "version",
+            &format!("{}", d.version as f64 / 100.0),
+        );
         append_field(&mut xml, "created_at", &format!("{}", d.created_at));
         append_field(&mut xml, "uid", &d.uid);
         append_field(&mut xml, "session_id", &d.session_id);
@@ -208,14 +280,18 @@ impl StreamInfo {
         let hostname = extract_tag(xml, "hostname").unwrap_or_default();
         let v4address = extract_tag(xml, "v4address").unwrap_or_default();
         let v4data_port = extract_tag(xml, "v4data_port")
-            .and_then(|s| s.parse().ok()).unwrap_or(0);
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
         let v4service_port = extract_tag(xml, "v4service_port")
-            .and_then(|s| s.parse().ok()).unwrap_or(0);
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
         let v6address = extract_tag(xml, "v6address").unwrap_or_default();
         let v6data_port = extract_tag(xml, "v6data_port")
-            .and_then(|s| s.parse().ok()).unwrap_or(0);
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
         let v6service_port = extract_tag(xml, "v6service_port")
-            .and_then(|s| s.parse().ok()).unwrap_or(0);
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
 
         let info = StreamInfo {
             inner: Arc::new(Mutex::new(StreamInfoData {
@@ -246,23 +322,31 @@ impl StreamInfo {
     /// Supports simple XPath-like queries: empty always matches,
     /// name='X' / type='X' / source_id='X' etc.
     pub fn matches_query(&self, query: &str) -> bool {
-        if query.is_empty() { return true; }
+        if query.is_empty() {
+            return true;
+        }
         let d = self.inner.lock();
         // Support: "clause and clause" with "or" between groups
         // e.g. "name='A' and type='B'" or "name='C'"
         for or_group in query.split(" or ") {
             let or_group = or_group.trim();
-            if or_group.is_empty() { continue; }
+            if or_group.is_empty() {
+                continue;
+            }
             let mut all_match = true;
             for clause in or_group.split(" and ") {
                 let clause = clause.trim();
-                if clause.is_empty() { continue; }
+                if clause.is_empty() {
+                    continue;
+                }
                 if !match_clause(clause, &d) {
                     all_match = false;
                     break;
                 }
             }
-            if all_match { return true; }
+            if all_match {
+                return true;
+            }
         }
         false
     }
@@ -292,7 +376,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
         let inner = &clause[12..clause.len() - 1];
         if let Some(comma) = inner.find(',') {
             let field = inner[..comma].trim();
-            let val = inner[comma + 1..].trim().trim_matches('\'').trim_matches('"');
+            let val = inner[comma + 1..]
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"');
             return get_field(field, d).starts_with(val);
         }
         return true;
@@ -303,7 +390,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
         let inner = &clause[9..clause.len() - 1];
         if let Some(comma) = inner.find(',') {
             let field = inner[..comma].trim();
-            let val = inner[comma + 1..].trim().trim_matches('\'').trim_matches('"');
+            let val = inner[comma + 1..]
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"');
             return get_field(field, d).contains(val);
         }
         return true;
@@ -312,14 +402,20 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
     // field!='value' — inequality
     if let Some(pos) = clause.find("!=") {
         let field = clause[..pos].trim();
-        let val = clause[pos + 2..].trim().trim_matches('\'').trim_matches('"');
+        let val = clause[pos + 2..]
+            .trim()
+            .trim_matches('\'')
+            .trim_matches('"');
         return get_field(field, d) != val;
     }
 
     // field>='value' — greater-or-equal
     if let Some(pos) = clause.find(">=") {
         let field = clause[..pos].trim();
-        let val = clause[pos + 2..].trim().trim_matches('\'').trim_matches('"');
+        let val = clause[pos + 2..]
+            .trim()
+            .trim_matches('\'')
+            .trim_matches('"');
         if let (Ok(fv), Ok(vv)) = (get_field(field, d).parse::<f64>(), val.parse::<f64>()) {
             return fv >= vv;
         }
@@ -329,7 +425,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
     // field<='value'
     if let Some(pos) = clause.find("<=") {
         let field = clause[..pos].trim();
-        let val = clause[pos + 2..].trim().trim_matches('\'').trim_matches('"');
+        let val = clause[pos + 2..]
+            .trim()
+            .trim_matches('\'')
+            .trim_matches('"');
         if let (Ok(fv), Ok(vv)) = (get_field(field, d).parse::<f64>(), val.parse::<f64>()) {
             return fv <= vv;
         }
@@ -340,7 +439,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
     if let Some(pos) = clause.find('>') {
         if !clause[..pos].contains('=') {
             let field = clause[..pos].trim();
-            let val = clause[pos + 1..].trim().trim_matches('\'').trim_matches('"');
+            let val = clause[pos + 1..]
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"');
             if let (Ok(fv), Ok(vv)) = (get_field(field, d).parse::<f64>(), val.parse::<f64>()) {
                 return fv > vv;
             }
@@ -351,7 +453,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
     if let Some(pos) = clause.find('<') {
         if !clause[..pos].contains('=') && !clause[..pos].contains('!') {
             let field = clause[..pos].trim();
-            let val = clause[pos + 1..].trim().trim_matches('\'').trim_matches('"');
+            let val = clause[pos + 1..]
+                .trim()
+                .trim_matches('\'')
+                .trim_matches('"');
             if let (Ok(fv), Ok(vv)) = (get_field(field, d).parse::<f64>(), val.parse::<f64>()) {
                 return fv < vv;
             }
@@ -361,7 +466,10 @@ fn match_clause(clause: &str, d: &StreamInfoData) -> bool {
     // field='value' — equality
     if let Some(eq_pos) = clause.find('=') {
         let field = clause[..eq_pos].trim();
-        let val = clause[eq_pos + 1..].trim().trim_matches('\'').trim_matches('"');
+        let val = clause[eq_pos + 1..]
+            .trim()
+            .trim_matches('\'')
+            .trim_matches('"');
         return get_field(field, d) == val;
     }
 

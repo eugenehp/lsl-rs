@@ -6,7 +6,14 @@ use lsl_core::prelude::*;
 use std::time::Duration;
 
 fn main() {
-    let info = StreamInfo::new("RustSender", "EEG", 8, 250.0, ChannelFormat::Float32, "rust1");
+    let info = StreamInfo::new(
+        "RustSender",
+        "EEG",
+        8,
+        250.0,
+        ChannelFormat::Float32,
+        "rust1",
+    );
     let outlet = StreamOutlet::new(&info, 0, 360);
     println!(
         "Streaming on TCP port {} …  (Ctrl-C to stop)",

@@ -1,10 +1,10 @@
 //! Send buffer: single-producer, multiple-consumer broadcast buffer for samples.
 
 use crate::sample::Sample;
-use crossbeam_channel::{Sender, Receiver, unbounded};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use parking_lot::Mutex;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 /// A broadcast-style send buffer. The outlet pushes samples in, and each consumer
 /// (TCP client session) gets its own queue.
@@ -37,7 +37,8 @@ impl SendBuffer {
             }
             c.sender.send(Some(sample.clone())).is_ok()
         });
-        self.has_consumers.store(!consumers.is_empty(), Ordering::Relaxed);
+        self.has_consumers
+            .store(!consumers.is_empty(), Ordering::Relaxed);
     }
 
     /// Wake up consumers (e.g., during shutdown)
@@ -52,7 +53,10 @@ impl SendBuffer {
     pub fn new_consumer(&self, max_buffered: usize) -> Receiver<Option<Sample>> {
         let (tx, rx) = unbounded();
         let mut consumers = self.consumers.lock();
-        consumers.push(ConsumerEntry { sender: tx, max_buffered });
+        consumers.push(ConsumerEntry {
+            sender: tx,
+            max_buffered,
+        });
         self.has_consumers.store(true, Ordering::Relaxed);
         rx
     }
@@ -69,10 +73,15 @@ impl SendBuffer {
 
     /// Wait until at least one consumer is registered
     pub fn wait_for_consumers(&self, timeout: f64) -> bool {
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs_f64(timeout.max(0.0));
+        let deadline =
+            std::time::Instant::now() + std::time::Duration::from_secs_f64(timeout.max(0.0));
         loop {
-            if !self.consumers.lock().is_empty() { return true; }
-            if std::time::Instant::now() >= deadline { return false; }
+            if !self.consumers.lock().is_empty() {
+                return true;
+            }
+            if std::time::Instant::now() >= deadline {
+                return false;
+            }
             std::thread::sleep(std::time::Duration::from_millis(5));
         }
     }

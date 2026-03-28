@@ -5,13 +5,8 @@
 [advisories]
 db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
-vulnerability = "deny"
-unmaintained = "warn"
-yanked = "warn"
-notice = "warn"
 
 [licenses]
-unlicensed = "deny"
 allow = [
     "MIT",
     "Apache-2.0",
@@ -19,14 +14,13 @@ allow = [
     "BSD-3-Clause",
     "ISC",
     "Unicode-DFS-2016",
+    "Unicode-3.0",
     "Zlib",
     "BSL-1.0",
-    "Unicode-3.0",
     "OpenSSL",
     "CC0-1.0",
+    "GPL-3.0",
 ]
-copyleft = "deny"
-allow-osi-fsf-free = "neither"
 confidence-threshold = 0.8
 
 [[licenses.clarify]]
@@ -38,13 +32,6 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 multiple-versions = "warn"
 wildcards = "allow"
 highlight = "all"
-
-# Deny specific crates
-deny = []
-
-# Allow specific duplicates
-skip = []
-skip-tree = []
 
 [sources]
 unknown-registry = "deny"

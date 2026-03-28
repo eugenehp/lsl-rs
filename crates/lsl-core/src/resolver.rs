@@ -3,10 +3,10 @@
 //! Sends LSL:shortinfo queries over IPv4 and IPv6 multicast/broadcast/unicast,
 //! collects responses, and returns discovered StreamInfo objects.
 
-use crate::stream_info::StreamInfo;
 use crate::config::CONFIG;
+use crate::stream_info::StreamInfo;
 use std::collections::HashMap;
-use std::net::{SocketAddr, IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::time::Duration;
 use tokio::net::UdpSocket;
 
@@ -49,7 +49,10 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
 
     // Create IPv4 receiver socket
     let v4_recv = UdpSocket::bind("0.0.0.0:0").await.ok();
-    let v4_port = v4_recv.as_ref().map(|s| s.local_addr().unwrap().port()).unwrap_or(0);
+    let v4_port = v4_recv
+        .as_ref()
+        .map(|s| s.local_addr().unwrap().port())
+        .unwrap_or(0);
 
     // Create IPv6 receiver socket
     let v6_recv = if CONFIG.allow_ipv6 {
@@ -57,7 +60,10 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
     } else {
         None
     };
-    let v6_port = v6_recv.as_ref().map(|s| s.local_addr().unwrap().port()).unwrap_or(0);
+    let v6_port = v6_recv
+        .as_ref()
+        .map(|s| s.local_addr().unwrap().port())
+        .unwrap_or(0);
 
     // Build query message. For IPv6 targets we use v6_port, for v4 we use v4_port.
     let query_id = format!("{}", fxhash::hash32(query));
@@ -67,8 +73,13 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
 
     for &addr in &CONFIG.multicast_addresses {
         let ret_port = if addr.is_ipv6() { v6_port } else { v4_port };
-        if ret_port == 0 { continue; }
-        let msg = format!("LSL:shortinfo\r\n{}\r\n{} {}\r\n", query, ret_port, query_id);
+        if ret_port == 0 {
+            continue;
+        }
+        let msg = format!(
+            "LSL:shortinfo\r\n{}\r\n{} {}\r\n",
+            query, ret_port, query_id
+        );
         targets.push((SocketAddr::new(addr, CONFIG.multicast_port), msg));
     }
 
@@ -76,7 +87,10 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
     {
         let msg = format!("LSL:shortinfo\r\n{}\r\n{} {}\r\n", query, v4_port, query_id);
         for port in CONFIG.base_port..CONFIG.base_port + CONFIG.port_range {
-            targets.push((SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port), msg.clone()));
+            targets.push((
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
+                msg.clone(),
+            ));
         }
     }
 
@@ -84,7 +98,10 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
     if CONFIG.allow_ipv6 && v6_port != 0 {
         let msg = format!("LSL:shortinfo\r\n{}\r\n{} {}\r\n", query, v6_port, query_id);
         for port in CONFIG.base_port..CONFIG.base_port + CONFIG.port_range {
-            targets.push((SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), port), msg.clone()));
+            targets.push((
+                SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), port),
+                msg.clone(),
+            ));
         }
     }
 
@@ -99,7 +116,9 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
 
     // Prepare send sockets
     let v4_send = UdpSocket::bind("0.0.0.0:0").await.ok();
-    if let Some(ref s) = v4_send { let _ = s.set_broadcast(true); }
+    if let Some(ref s) = v4_send {
+        let _ = s.set_broadcast(true);
+    }
 
     let v6_send = if CONFIG.allow_ipv6 {
         UdpSocket::bind("[::]:0").await.ok()
@@ -109,8 +128,12 @@ async fn resolve_query_async(query: &str, minimum: i32, timeout: f64) -> Vec<Str
 
     loop {
         let now = tokio::time::Instant::now();
-        if now >= end { break; }
-        if minimum > 0 && results.len() >= minimum as usize { break; }
+        if now >= end {
+            break;
+        }
+        if minimum > 0 && results.len() >= minimum as usize {
+            break;
+        }
 
         // Send a wave of queries
         if now >= next_wave {
@@ -181,8 +204,7 @@ fn parse_reply(data: &[u8], expected_id: &str) -> Option<StreamInfo> {
             .unwrap_or("")
             .trim();
         if returned_id == expected_id {
-            let xml = std::str::from_utf8(&data[newline_pos + 1..])
-                .unwrap_or("");
+            let xml = std::str::from_utf8(&data[newline_pos + 1..]).unwrap_or("");
             return StreamInfo::from_shortinfo_message(xml);
         }
     }
@@ -222,6 +244,7 @@ impl ContinuousResolver {
 
 impl Drop for ContinuousResolver {
     fn drop(&mut self) {
-        self.shutdown.store(true, std::sync::atomic::Ordering::Relaxed);
+        self.shutdown
+            .store(true, std::sync::atomic::Ordering::Relaxed);
     }
 }

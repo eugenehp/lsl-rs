@@ -70,7 +70,9 @@ impl LiveViewer {
             inlet,
             name: info.name(),
             nch,
-            ring: (0..nch).map(|_| VecDeque::from(vec![0.0; ring_len])).collect(),
+            ring: (0..nch)
+                .map(|_| VecDeque::from(vec![0.0; ring_len]))
+                .collect(),
             quality: SignalQuality::new(info.nominal_srate(), nch),
             ring_len,
         }
@@ -118,7 +120,11 @@ struct RecorderApp {
 }
 
 #[derive(PartialEq, Clone, Copy)]
-enum Tab { Recorder, Viewer, Inspector }
+enum Tab {
+    Recorder,
+    Viewer,
+    Inspector,
+}
 
 impl RecorderApp {
     fn new() -> Self {
@@ -156,8 +162,16 @@ impl RecorderApp {
                 let mut new_list = Vec::new();
                 for info in found {
                     let uid = info.uid();
-                    let was_checked = self.streams.iter().find(|s| s.info.uid() == uid).map(|s| s.checked).unwrap_or(false);
-                    new_list.push(StreamEntry { info, checked: was_checked });
+                    let was_checked = self
+                        .streams
+                        .iter()
+                        .find(|s| s.info.uid() == uid)
+                        .map(|s| s.checked)
+                        .unwrap_or(false);
+                    new_list.push(StreamEntry {
+                        info,
+                        checked: was_checked,
+                    });
                 }
                 self.streams = new_list;
                 self.status_msg = format!("Found {} stream(s)", self.streams.len());
@@ -166,24 +180,45 @@ impl RecorderApp {
         }
         if let Some(ref rx) = self.stop_rx {
             if let Ok(r) = rx.try_recv() {
-                self.status_msg = format!("Stopped [{}]. Saved {} ({} KB)", r.format.as_str(), r.filename, r.size / 1024);
+                self.status_msg = format!(
+                    "Stopped [{}]. Saved {} ({} KB)",
+                    r.format.as_str(),
+                    r.filename,
+                    r.size / 1024
+                );
                 self.stop_rx = None;
             }
         }
     }
 
     fn start_recording(&mut self) {
-        if self.recording.is_some() { return; }
-        let selected: Vec<StreamInfo> = self.streams.iter().filter(|s| s.checked).map(|s| s.info.clone()).collect();
-        if selected.is_empty() { self.status_msg = "No streams selected".into(); return; }
+        if self.recording.is_some() {
+            return;
+        }
+        let selected: Vec<StreamInfo> = self
+            .streams
+            .iter()
+            .filter(|s| s.checked)
+            .map(|s| s.info.clone())
+            .collect();
+        if selected.is_empty() {
+            self.status_msg = "No streams selected".into();
+            return;
+        }
         let stamp = timestamp_str();
         let filename = match self.format {
             RecordingFormat::Xdf => format!("recording_{}.xdf", stamp),
             RecordingFormat::Parquet => format!("recording_{}_parquet", stamp),
         };
         match Recording::start_with_format(&filename, &selected, self.format) {
-            Ok(rec) => { self.start_time = local_clock(); self.status_msg = format!("Recording [{}] to {} …", self.format.as_str(), filename); self.recording = Some(rec); }
-            Err(e) => { self.status_msg = format!("Error: {}", e); }
+            Ok(rec) => {
+                self.start_time = local_clock();
+                self.status_msg = format!("Recording [{}] to {} …", self.format.as_str(), filename);
+                self.recording = Some(rec);
+            }
+            Err(e) => {
+                self.status_msg = format!("Error: {}", e);
+            }
         }
     }
 
@@ -195,15 +230,29 @@ impl RecorderApp {
             self.status_msg = format!("Stopping {} …", filename);
             let (tx, rx) = std::sync::mpsc::channel();
             self.stop_rx = Some(rx);
-            tokio::spawn(async move { rec.stop().await; let _ = tx.send(StopResult { filename, format, size }); });
+            tokio::spawn(async move {
+                rec.stop().await;
+                let _ = tx.send(StopResult {
+                    filename,
+                    format,
+                    size,
+                });
+            });
         }
     }
 
     fn elapsed_str(&self) -> String {
         if self.recording.is_some() {
             let secs = (local_clock() - self.start_time).max(0.0) as u64;
-            format!("{:02}:{:02}:{:02}", secs / 3600, (secs / 60) % 60, secs % 60)
-        } else { "—".into() }
+            format!(
+                "{:02}:{:02}:{:02}",
+                secs / 3600,
+                (secs / 60) % 60,
+                secs % 60
+            )
+        } else {
+            "—".into()
+        }
     }
 
     fn push_marker(&mut self, label: &str) {
@@ -219,7 +268,10 @@ impl RecorderApp {
 }
 
 fn timestamp_str() -> String {
-    let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+    let t = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
     format!("{}", t)
 }
 
@@ -228,9 +280,14 @@ fn timestamp_str() -> String {
 impl eframe::App for RecorderApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.poll_async();
-        if let Some(ref mut v) = self.viewer { v.poll(); }
+        if let Some(ref mut v) = self.viewer {
+            v.poll();
+        }
 
-        let needs_repaint = self.recording.is_some() || self.resolve_rx.is_some() || self.stop_rx.is_some() || self.viewer.is_some();
+        let needs_repaint = self.recording.is_some()
+            || self.resolve_rx.is_some()
+            || self.stop_rx.is_some()
+            || self.viewer.is_some();
         if needs_repaint {
             ctx.request_repaint_after(std::time::Duration::from_millis(33)); // ~30fps for viewer
         }
@@ -262,12 +319,10 @@ impl eframe::App for RecorderApp {
             });
         });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            match self.tab {
-                Tab::Recorder => self.ui_recorder(ui),
-                Tab::Viewer => self.ui_viewer(ui),
-                Tab::Inspector => self.ui_inspector(ui),
-            }
+        egui::CentralPanel::default().show(ctx, |ui| match self.tab {
+            Tab::Recorder => self.ui_recorder(ui),
+            Tab::Viewer => self.ui_viewer(ui),
+            Tab::Inspector => self.ui_inspector(ui),
         });
     }
 }
@@ -277,9 +332,22 @@ impl RecorderApp {
         // Toolbar
         ui.horizontal(|ui| {
             let resolving = self.resolve_rx.is_some();
-            if ui.add_enabled(!resolving, egui::Button::new("🔄 Refresh")).clicked() { self.refresh_streams(); }
-            if ui.button("✅ All").clicked() { for s in &mut self.streams { s.checked = true; } }
-            if ui.button("❌ None").clicked() { for s in &mut self.streams { s.checked = false; } }
+            if ui
+                .add_enabled(!resolving, egui::Button::new("🔄 Refresh"))
+                .clicked()
+            {
+                self.refresh_streams();
+            }
+            if ui.button("✅ All").clicked() {
+                for s in &mut self.streams {
+                    s.checked = true;
+                }
+            }
+            if ui.button("❌ None").clicked() {
+                for s in &mut self.streams {
+                    s.checked = false;
+                }
+            }
             ui.separator();
             let is_rec = self.recording.is_some();
             ui.add_enabled_ui(!is_rec, |ui| {
@@ -289,10 +357,25 @@ impl RecorderApp {
             });
             ui.separator();
             if !is_rec && self.stop_rx.is_none() {
-                if ui.add_enabled(!self.streams.is_empty(), egui::Button::new("⏺ Record").fill(egui::Color32::from_rgb(180, 40, 40))).clicked() { self.start_recording(); }
+                if ui
+                    .add_enabled(
+                        !self.streams.is_empty(),
+                        egui::Button::new("⏺ Record").fill(egui::Color32::from_rgb(180, 40, 40)),
+                    )
+                    .clicked()
+                {
+                    self.start_recording();
+                }
             } else if is_rec {
-                if ui.button(egui::RichText::new("⏹ Stop").color(egui::Color32::WHITE)).clicked() { self.stop_recording(); }
-            } else { ui.spinner(); }
+                if ui
+                    .button(egui::RichText::new("⏹ Stop").color(egui::Color32::WHITE))
+                    .clicked()
+                {
+                    self.stop_recording();
+                }
+            } else {
+                ui.spinner();
+            }
         });
         ui.separator();
 
@@ -300,21 +383,29 @@ impl RecorderApp {
         if self.streams.is_empty() {
             ui.label("No streams. Click Refresh.");
         } else {
-            egui::ScrollArea::vertical().max_height(ui.available_height() - 60.0).show(ui, |ui| {
-                egui::Grid::new("sg").num_columns(6).striped(true).spacing([12.0, 4.0]).show(ui, |ui| {
-                    for label in ["", "Name", "Type", "Host", "Ch", "Rate"] { ui.label(egui::RichText::new(label).strong()); }
-                    ui.end_row();
-                    for entry in &mut self.streams {
-                        ui.checkbox(&mut entry.checked, "");
-                        ui.label(entry.info.name());
-                        ui.label(entry.info.type_());
-                        ui.label(entry.info.hostname());
-                        ui.label(format!("{}", entry.info.channel_count()));
-                        ui.label(format!("{:.0}", entry.info.nominal_srate()));
-                        ui.end_row();
-                    }
+            egui::ScrollArea::vertical()
+                .max_height(ui.available_height() - 60.0)
+                .show(ui, |ui| {
+                    egui::Grid::new("sg")
+                        .num_columns(6)
+                        .striped(true)
+                        .spacing([12.0, 4.0])
+                        .show(ui, |ui| {
+                            for label in ["", "Name", "Type", "Host", "Ch", "Rate"] {
+                                ui.label(egui::RichText::new(label).strong());
+                            }
+                            ui.end_row();
+                            for entry in &mut self.streams {
+                                ui.checkbox(&mut entry.checked, "");
+                                ui.label(entry.info.name());
+                                ui.label(entry.info.type_());
+                                ui.label(entry.info.hostname());
+                                ui.label(format!("{}", entry.info.channel_count()));
+                                ui.label(format!("{:.0}", entry.info.nominal_srate()));
+                                ui.end_row();
+                            }
+                        });
                 });
-            });
         }
 
         // Recording info
@@ -322,13 +413,19 @@ impl RecorderApp {
         ui.horizontal(|ui| {
             if let Some(ref rec) = self.recording {
                 let st = rec.state.as_ref();
-                ui.label(egui::RichText::new(format!("● REC [{}]", rec.format.as_str())).color(egui::Color32::RED).strong());
-                ui.label(format!("{}  {} streams  {} samples  {} KB  markers: {}",
+                ui.label(
+                    egui::RichText::new(format!("● REC [{}]", rec.format.as_str()))
+                        .color(egui::Color32::RED)
+                        .strong(),
+                );
+                ui.label(format!(
+                    "{}  {} streams  {} samples  {} KB  markers: {}",
                     self.elapsed_str(),
                     st.stream_count.load(Ordering::Relaxed),
                     st.sample_count.load(Ordering::Relaxed),
                     rec.file_size() / 1024,
-                    self.marker_count));
+                    self.marker_count
+                ));
             } else {
                 ui.label(egui::RichText::new("○ Idle").color(egui::Color32::GRAY));
             }
@@ -369,13 +466,19 @@ impl RecorderApp {
 
             egui::ScrollArea::vertical().show(ui, |ui| {
                 let colors = [
-                    egui::Color32::from_rgb(0, 255, 255), egui::Color32::from_rgb(255, 0, 255),
-                    egui::Color32::from_rgb(255, 255, 0), egui::Color32::from_rgb(0, 255, 0),
-                    egui::Color32::from_rgb(255, 128, 0), egui::Color32::from_rgb(0, 128, 255),
-                    egui::Color32::from_rgb(255, 0, 128), egui::Color32::from_rgb(128, 255, 0),
+                    egui::Color32::from_rgb(0, 255, 255),
+                    egui::Color32::from_rgb(255, 0, 255),
+                    egui::Color32::from_rgb(255, 255, 0),
+                    egui::Color32::from_rgb(0, 255, 0),
+                    egui::Color32::from_rgb(255, 128, 0),
+                    egui::Color32::from_rgb(0, 128, 255),
+                    egui::Color32::from_rgb(255, 0, 128),
+                    egui::Color32::from_rgb(128, 255, 0),
                 ];
                 for ch in 0..nch {
-                    let points: PlotPoints = viewer.ring[ch].iter().enumerate()
+                    let points: PlotPoints = viewer.ring[ch]
+                        .iter()
+                        .enumerate()
                         .map(|(i, &v)| [i as f64, v])
                         .collect();
                     let color = colors[ch % colors.len()];
@@ -401,7 +504,10 @@ impl RecorderApp {
         ui.horizontal(|ui| {
             ui.label("Select stream:");
             for (i, entry) in self.streams.iter().enumerate() {
-                if ui.selectable_label(self.inspector_idx == Some(i), &entry.info.name()).clicked() {
+                if ui
+                    .selectable_label(self.inspector_idx == Some(i), &entry.info.name())
+                    .clicked()
+                {
                     self.inspector_idx = Some(i);
                 }
             }
@@ -411,39 +517,58 @@ impl RecorderApp {
         if let Some(idx) = self.inspector_idx {
             if let Some(entry) = self.streams.get(idx) {
                 let info = &entry.info;
-                egui::Grid::new("inspect").num_columns(2).spacing([20.0, 4.0]).show(ui, |ui| {
-                    let rows: Vec<(&str, String)> = vec![
-                        ("Name", info.name()),
-                        ("Type", info.type_()),
-                        ("Channels", format!("{}", info.channel_count())),
-                        ("Sample Rate", format!("{} Hz", info.nominal_srate())),
-                        ("Format", info.channel_format().as_str().to_string()),
-                        ("Source ID", info.source_id()),
-                        ("UID", info.uid()),
-                        ("Hostname", info.hostname()),
-                        ("Session", info.session_id()),
-                        ("Created", format!("{:.6}s", info.created_at())),
-                        ("IPv4 Data", format!("{}:{}", info.v4address(), info.v4data_port())),
-                        ("IPv4 Service", format!("{}:{}", info.v4address(), info.v4service_port())),
-                        ("IPv6 Data", format!("{}:{}", info.v6address(), info.v6data_port())),
-                        ("IPv6 Service", format!("{}:{}", info.v6address(), info.v6service_port())),
-                    ];
-                    for (k, v) in &rows {
-                        ui.label(egui::RichText::new(*k).strong());
-                        ui.label(v);
-                        ui.end_row();
-                    }
-                });
+                egui::Grid::new("inspect")
+                    .num_columns(2)
+                    .spacing([20.0, 4.0])
+                    .show(ui, |ui| {
+                        let rows: Vec<(&str, String)> = vec![
+                            ("Name", info.name()),
+                            ("Type", info.type_()),
+                            ("Channels", format!("{}", info.channel_count())),
+                            ("Sample Rate", format!("{} Hz", info.nominal_srate())),
+                            ("Format", info.channel_format().as_str().to_string()),
+                            ("Source ID", info.source_id()),
+                            ("UID", info.uid()),
+                            ("Hostname", info.hostname()),
+                            ("Session", info.session_id()),
+                            ("Created", format!("{:.6}s", info.created_at())),
+                            (
+                                "IPv4 Data",
+                                format!("{}:{}", info.v4address(), info.v4data_port()),
+                            ),
+                            (
+                                "IPv4 Service",
+                                format!("{}:{}", info.v4address(), info.v4service_port()),
+                            ),
+                            (
+                                "IPv6 Data",
+                                format!("{}:{}", info.v6address(), info.v6data_port()),
+                            ),
+                            (
+                                "IPv6 Service",
+                                format!("{}:{}", info.v6address(), info.v6service_port()),
+                            ),
+                        ];
+                        for (k, v) in &rows {
+                            ui.label(egui::RichText::new(*k).strong());
+                            ui.label(v);
+                            ui.end_row();
+                        }
+                    });
 
                 ui.separator();
                 ui.label(egui::RichText::new("XML Description").strong());
                 let xml = info.to_fullinfo_message();
-                egui::ScrollArea::vertical().max_height(300.0).show(ui, |ui| {
-                    ui.code(xml);
-                });
+                egui::ScrollArea::vertical()
+                    .max_height(300.0)
+                    .show(ui, |ui| {
+                        ui.code(xml);
+                    });
             }
         } else {
-            ui.centered_and_justified(|ui| { ui.label("Select a stream to inspect."); });
+            ui.centered_and_justified(|ui| {
+                ui.label("Select a stream to inspect.");
+            });
         }
     }
 }

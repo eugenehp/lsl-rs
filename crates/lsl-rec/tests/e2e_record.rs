@@ -78,25 +78,39 @@ async fn e2e_xdf() {
     while pos < data.len() {
         let nlb = data[pos] as usize;
         pos += 1;
-        if pos + nlb > data.len() { break; }
+        if pos + nlb > data.len() {
+            break;
+        }
         let length = match nlb {
             1 => data[pos] as u64,
-            4 => u32::from_le_bytes(data[pos..pos+4].try_into().unwrap()) as u64,
-            8 => u64::from_le_bytes(data[pos..pos+8].try_into().unwrap()),
+            4 => u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) as u64,
+            8 => u64::from_le_bytes(data[pos..pos + 8].try_into().unwrap()),
             _ => break,
         };
         pos += nlb;
-        if pos + 2 > data.len() { break; }
-        let tag = u16::from_le_bytes(data[pos..pos+2].try_into().unwrap());
+        if pos + 2 > data.len() {
+            break;
+        }
+        let tag = u16::from_le_bytes(data[pos..pos + 2].try_into().unwrap());
         pos += length as usize;
-        match tag { 1 => has_fh = true, 2 => has_sh = true, 3 => has_samp = true, 6 => has_sf = true, _ => {} }
+        match tag {
+            1 => has_fh = true,
+            2 => has_sh = true,
+            3 => has_samp = true,
+            6 => has_sf = true,
+            _ => {}
+        }
     }
     assert!(has_fh, "Missing FileHeader");
     assert!(has_sh, "Missing StreamHeader");
     assert!(has_samp, "No sample chunks");
     assert!(has_sf, "Missing StreamFooter");
     assert!(count >= 200, "Only {} samples (expected ≥200)", count);
-    println!("✅ XDF e2e PASSED ({} samples, {} bytes)", count, data.len());
+    println!(
+        "✅ XDF e2e PASSED ({} samples, {} bytes)",
+        count,
+        data.len()
+    );
     std::fs::remove_file(path).ok();
 }
 
@@ -120,25 +134,46 @@ async fn e2e_parquet() {
     sender.join().unwrap();
 
     // ── Verify directory structure ──
-    assert!(std::path::Path::new(dir).is_dir(), "Output directory not created");
+    assert!(
+        std::path::Path::new(dir).is_dir(),
+        "Output directory not created"
+    );
 
-    let entries: Vec<_> = std::fs::read_dir(dir).unwrap().filter_map(|e| e.ok()).collect();
-    let filenames: Vec<String> = entries.iter().map(|e| e.file_name().to_string_lossy().to_string()).collect();
+    let entries: Vec<_> = std::fs::read_dir(dir)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .collect();
+    let filenames: Vec<String> = entries
+        .iter()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .collect();
     println!("[Parquet] Output files: {:?}", filenames);
 
-    assert!(filenames.iter().any(|f| f == "metadata.json"), "Missing metadata.json sidecar");
+    assert!(
+        filenames.iter().any(|f| f == "metadata.json"),
+        "Missing metadata.json sidecar"
+    );
 
-    let parquet_files: Vec<&String> = filenames.iter().filter(|f| f.ends_with(".parquet")).collect();
+    let parquet_files: Vec<&String> = filenames
+        .iter()
+        .filter(|f| f.ends_with(".parquet"))
+        .collect();
     assert!(!parquet_files.is_empty(), "No .parquet files found");
 
     // ── Validate JSON sidecar ──
     let sidecar_path = std::path::Path::new(dir).join("metadata.json");
     let sidecar_str = std::fs::read_to_string(&sidecar_path).expect("Cannot read metadata.json");
-    let sidecar: serde_json::Value = serde_json::from_str(&sidecar_str).expect("Invalid JSON sidecar");
-    println!("[Parquet] Sidecar:\n{}", serde_json::to_string_pretty(&sidecar).unwrap());
+    let sidecar: serde_json::Value =
+        serde_json::from_str(&sidecar_str).expect("Invalid JSON sidecar");
+    println!(
+        "[Parquet] Sidecar:\n{}",
+        serde_json::to_string_pretty(&sidecar).unwrap()
+    );
 
     assert!(sidecar["recording_start_unix"].as_f64().unwrap() > 0.0);
-    let streams = sidecar["streams"].as_array().expect("streams should be array");
+    let streams = sidecar["streams"]
+        .as_array()
+        .expect("streams should be array");
     assert_eq!(streams.len(), 1);
     let s = &streams[0];
     assert_eq!(s["name"].as_str().unwrap(), "E2E_Parquet");
@@ -149,7 +184,10 @@ async fn e2e_parquet() {
     assert!(s["sample_count"].as_u64().unwrap() > 0);
     assert!(s["first_timestamp"].as_f64().unwrap() > 0.0);
     assert!(s["last_timestamp"].as_f64().unwrap() > s["first_timestamp"].as_f64().unwrap());
-    assert!(s["header_xml"].as_str().unwrap().contains("<name>E2E_Parquet</name>"));
+    assert!(s["header_xml"]
+        .as_str()
+        .unwrap()
+        .contains("<name>E2E_Parquet</name>"));
     assert!(s["parquet_file"].as_str().unwrap().ends_with(".parquet"));
     println!("✓ Sidecar metadata validated");
 
@@ -162,16 +200,28 @@ async fn e2e_parquet() {
         .expect("Cannot build reader");
 
     let schema = reader.schema();
-    let field_names: Vec<&str> = schema.fields().iter()
+    let field_names: Vec<&str> = schema
+        .fields()
+        .iter()
         .map(|f: &std::sync::Arc<arrow::datatypes::Field>| f.name().as_str())
         .collect();
     assert_eq!(field_names[0], "timestamp");
     assert_eq!(field_names.len(), 5);
-    println!("✓ Schema has {} columns: {:?}", field_names.len(), field_names);
+    println!(
+        "✓ Schema has {} columns: {:?}",
+        field_names.len(),
+        field_names
+    );
 
-    assert_eq!(*schema.field(0).data_type(), arrow::datatypes::DataType::Float64);
+    assert_eq!(
+        *schema.field(0).data_type(),
+        arrow::datatypes::DataType::Float64
+    );
     for i in 1..5 {
-        assert_eq!(*schema.field(i).data_type(), arrow::datatypes::DataType::Float32);
+        assert_eq!(
+            *schema.field(i).data_type(),
+            arrow::datatypes::DataType::Float32
+        );
     }
     println!("✓ Column types correct");
 
@@ -182,21 +232,37 @@ async fn e2e_parquet() {
         let batch = batch.expect("Error reading batch");
         let n = batch.num_rows();
         total_rows += n as u64;
-        let ts_col = batch.column(0).as_any()
+        let ts_col = batch
+            .column(0)
+            .as_any()
             .downcast_ref::<arrow::array::Float64Array>()
             .expect("timestamp column not Float64");
         for i in 0..n {
             let t = ts_col.value(i);
             assert!(t > 0.0, "Timestamp should be positive, got {}", t);
-            if t < first_ts { first_ts = t; }
-            if t > last_ts { last_ts = t; }
+            if t < first_ts {
+                first_ts = t;
+            }
+            if t > last_ts {
+                last_ts = t;
+            }
         }
     }
 
-    println!("✓ Read {} rows, timestamps [{:.4} .. {:.4}]", total_rows, first_ts, last_ts);
-    assert!(total_rows >= 200, "Only {} rows (expected ≥200)", total_rows);
+    println!(
+        "✓ Read {} rows, timestamps [{:.4} .. {:.4}]",
+        total_rows, first_ts, last_ts
+    );
+    assert!(
+        total_rows >= 200,
+        "Only {} rows (expected ≥200)",
+        total_rows
+    );
     assert!(last_ts > first_ts);
 
-    println!("\n✅ Parquet e2e PASSED ({} samples recorded, {} rows in parquet)", count, total_rows);
+    println!(
+        "\n✅ Parquet e2e PASSED ({} samples recorded, {} rows in parquet)",
+        count, total_rows
+    );
     std::fs::remove_dir_all(dir).ok();
 }

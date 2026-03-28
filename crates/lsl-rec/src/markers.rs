@@ -37,7 +37,8 @@ impl MarkerOutlet {
     /// Push a marker with a custom timestamp.
     pub fn push_at(&mut self, label: &str, timestamp: f64) {
         self.count += 1;
-        self.outlet.push_sample_str(&[label.to_string()], timestamp, true);
+        self.outlet
+            .push_sample_str(&[label.to_string()], timestamp, true);
     }
 
     /// Number of markers pushed.

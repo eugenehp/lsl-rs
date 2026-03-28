@@ -41,7 +41,12 @@ enum Writer {
 }
 
 impl Writer {
-    fn write_stream_header(&self, stream_id: u32, info: &StreamInfo, header_xml: &str) -> anyhow::Result<()> {
+    fn write_stream_header(
+        &self,
+        stream_id: u32,
+        info: &StreamInfo,
+        header_xml: &str,
+    ) -> anyhow::Result<()> {
         match self {
             Writer::Xdf(w) => w.write_stream_header(stream_id, header_xml),
             Writer::Parquet(w) => w.write_stream_header(stream_id, info, header_xml),
@@ -61,7 +66,12 @@ impl Writer {
         }
     }
 
-    fn write_clock_offset(&self, stream_id: u32, collection_time: f64, offset: f64) -> anyhow::Result<()> {
+    fn write_clock_offset(
+        &self,
+        stream_id: u32,
+        collection_time: f64,
+        offset: f64,
+    ) -> anyhow::Result<()> {
         match self {
             Writer::Xdf(w) => w.write_clock_offset(stream_id, collection_time, offset),
             Writer::Parquet(w) => w.write_clock_offset(stream_id, collection_time, offset),
@@ -153,7 +163,9 @@ impl Recording {
     ) -> anyhow::Result<Self> {
         let writer = match format {
             RecordingFormat::Xdf => Writer::Xdf(Arc::new(XdfWriter::new(filename)?)),
-            RecordingFormat::Parquet => Writer::Parquet(Arc::new(ParquetRecordingWriter::new(filename)?)),
+            RecordingFormat::Parquet => {
+                Writer::Parquet(Arc::new(ParquetRecordingWriter::new(filename)?))
+            }
         };
         let shutdown = Arc::new(AtomicBool::new(false));
         let state = Arc::new(RecordingState {
@@ -309,32 +321,67 @@ fn record_stream(
         match fmt {
             ChannelFormat::Float32 => {
                 pull_chunk_typed::<f32>(
-                    &inlet, nch, srate, stream_id, writer, state,
-                    &mut first_ts, &mut last_ts, &mut total_samples,
+                    &inlet,
+                    nch,
+                    srate,
+                    stream_id,
+                    writer,
+                    state,
+                    &mut first_ts,
+                    &mut last_ts,
+                    &mut total_samples,
                 )?;
             }
             ChannelFormat::Double64 => {
                 pull_chunk_typed::<f64>(
-                    &inlet, nch, srate, stream_id, writer, state,
-                    &mut first_ts, &mut last_ts, &mut total_samples,
+                    &inlet,
+                    nch,
+                    srate,
+                    stream_id,
+                    writer,
+                    state,
+                    &mut first_ts,
+                    &mut last_ts,
+                    &mut total_samples,
                 )?;
             }
             ChannelFormat::Int32 => {
                 pull_chunk_typed::<i32>(
-                    &inlet, nch, srate, stream_id, writer, state,
-                    &mut first_ts, &mut last_ts, &mut total_samples,
+                    &inlet,
+                    nch,
+                    srate,
+                    stream_id,
+                    writer,
+                    state,
+                    &mut first_ts,
+                    &mut last_ts,
+                    &mut total_samples,
                 )?;
             }
             ChannelFormat::Int16 => {
                 pull_chunk_typed::<i16>(
-                    &inlet, nch, srate, stream_id, writer, state,
-                    &mut first_ts, &mut last_ts, &mut total_samples,
+                    &inlet,
+                    nch,
+                    srate,
+                    stream_id,
+                    writer,
+                    state,
+                    &mut first_ts,
+                    &mut last_ts,
+                    &mut total_samples,
                 )?;
             }
             ChannelFormat::Int64 => {
                 pull_chunk_typed::<i64>(
-                    &inlet, nch, srate, stream_id, writer, state,
-                    &mut first_ts, &mut last_ts, &mut total_samples,
+                    &inlet,
+                    nch,
+                    srate,
+                    stream_id,
+                    writer,
+                    state,
+                    &mut first_ts,
+                    &mut last_ts,
+                    &mut total_samples,
                 )?;
             }
             _ => {
@@ -469,26 +516,36 @@ pub trait PullSample: Sized {
 
 impl PullSample for f32 {
     fn pull_one(inlet: &StreamInlet, buf: &mut [Self], timeout: f64) -> anyhow::Result<f64> {
-        inlet.pull_sample_f(buf, timeout).map_err(|e| anyhow::anyhow!(e))
+        inlet
+            .pull_sample_f(buf, timeout)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }
 impl PullSample for f64 {
     fn pull_one(inlet: &StreamInlet, buf: &mut [Self], timeout: f64) -> anyhow::Result<f64> {
-        inlet.pull_sample_d(buf, timeout).map_err(|e| anyhow::anyhow!(e))
+        inlet
+            .pull_sample_d(buf, timeout)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }
 impl PullSample for i32 {
     fn pull_one(inlet: &StreamInlet, buf: &mut [Self], timeout: f64) -> anyhow::Result<f64> {
-        inlet.pull_sample_i32(buf, timeout).map_err(|e| anyhow::anyhow!(e))
+        inlet
+            .pull_sample_i32(buf, timeout)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }
 impl PullSample for i16 {
     fn pull_one(inlet: &StreamInlet, buf: &mut [Self], timeout: f64) -> anyhow::Result<f64> {
-        inlet.pull_sample_i16(buf, timeout).map_err(|e| anyhow::anyhow!(e))
+        inlet
+            .pull_sample_i16(buf, timeout)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }
 impl PullSample for i64 {
     fn pull_one(inlet: &StreamInlet, buf: &mut [Self], timeout: f64) -> anyhow::Result<f64> {
-        inlet.pull_sample_i64(buf, timeout).map_err(|e| anyhow::anyhow!(e))
+        inlet
+            .pull_sample_i64(buf, timeout)
+            .map_err(|e| anyhow::anyhow!(e))
     }
 }

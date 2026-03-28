@@ -49,27 +49,18 @@ fn main() -> anyhow::Result<()> {
                         "  Effective rate: {:.1} Hz (nominal: {:.1} Hz)",
                         snap.effective_srate, srate
                     );
-                    eprintln!(
-                        "  Jitter:   {:.3} ms",
-                        snap.jitter_sec * 1000.0
-                    );
+                    eprintln!("  Jitter:   {:.3} ms", snap.jitter_sec * 1000.0);
                     eprintln!(
                         "  Dropouts: {} ({:.2}%)",
                         snap.total_dropouts,
                         snap.dropout_rate * 100.0
                     );
-                    eprintln!(
-                        "  Samples:  {}",
-                        snap.total_samples
-                    );
+                    eprintln!("  Samples:  {}", snap.total_samples);
                     if !snap.snr_db.is_empty() {
-                        let avg_snr: f64 = snap
-                            .snr_db
-                            .iter()
-                            .filter(|v| v.is_finite())
-                            .sum::<f64>()
-                            / snap.snr_db.iter().filter(|v| v.is_finite()).count().max(1)
-                                as f64;
+                        let avg_snr: f64 =
+                            snap.snr_db.iter().filter(|v| v.is_finite()).sum::<f64>()
+                                / snap.snr_db.iter().filter(|v| v.is_finite()).count().max(1)
+                                    as f64;
                         eprintln!("  Avg SNR:  {:.1} dB", avg_snr);
                     }
                     eprintln!();

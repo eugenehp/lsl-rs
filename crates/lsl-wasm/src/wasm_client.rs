@@ -36,7 +36,7 @@ mod inner {
         /// JS callback: fn(stream_id: string, timestamps: Float64Array, data: Float64Array, nch: number)
         on_data: Option<js_sys::Function>,
         /// Pending list response
-        list_resolve: Option<js_sys::Function>,
+        _list_resolve: Option<js_sys::Function>,
     }
 
     #[wasm_bindgen]
@@ -50,7 +50,7 @@ mod inner {
             Ok(LslClient {
                 ws,
                 on_data: None,
-                list_resolve: None,
+                _list_resolve: None,
             })
         }
 

@@ -27,7 +27,7 @@ mod inner {
     struct StreamFeeder {
         info: StreamInfo,
         tx: broadcast::Sender<String>,
-        shutdown: Arc<tokio::sync::Notify>,
+        _shutdown: Arc<tokio::sync::Notify>,
     }
 
     type FeedMap = Arc<RwLock<HashMap<String, Arc<StreamFeeder>>>>;
@@ -76,7 +76,7 @@ mod inner {
                 let feeder = Arc::new(StreamFeeder {
                     info: info.clone(),
                     tx: tx.clone(),
-                    shutdown: shutdown.clone(),
+                    _shutdown: shutdown.clone(),
                 });
                 map.insert(uid.clone(), feeder.clone());
 
@@ -96,7 +96,7 @@ mod inner {
         info: &StreamInfo,
         uid: &str,
         tx: &broadcast::Sender<String>,
-        shutdown: &Arc<tokio::sync::Notify>,
+        _shutdown: &Arc<tokio::sync::Notify>,
     ) -> anyhow::Result<()> {
         let inlet = StreamInlet::new(info, 360, 0, true);
         inlet.open_stream(10.0).map_err(|e| anyhow::anyhow!(e))?;
@@ -219,7 +219,7 @@ mod inner {
                 }
                 // Forward data from subscribed streams (poll every 20ms)
                 _ = tokio::time::sleep(std::time::Duration::from_millis(20)) => {
-                    for (uid, rx) in &mut receivers {
+                    for (_uid, rx) in &mut receivers {
                         while let Ok(json) = rx.try_recv() {
                             if ws_tx.send(Message::Text(json.into())).await.is_err() {
                                 break;

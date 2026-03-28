@@ -126,7 +126,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Build docs
-        run: cargo doc --workspace --no-deps --exclude lsl-py
+        run: cargo doc --workspace --no-deps --exclude lsl-py --exclude lsl-wasm
         env:
           RUSTDOCFLAGS: "-D warnings"
 

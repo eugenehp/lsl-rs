@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LSL Browser Dashboard</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 2em; background: #1a1a2e; color: #eee; }
+        h1 { color: #0ff; }
+        button { padding: 8px 16px; margin: 4px; border: 1px solid #0ff; background: transparent;
+                 color: #0ff; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0ff2; }
+        #streams { margin: 1em 0; }
+        .stream-card { background: #16213e; padding: 12px; margin: 8px 0; border-radius: 8px;
+                       border-left: 4px solid #0ff; }
+        .stream-card .name { font-weight: bold; font-size: 1.1em; }
+        .stream-card .meta { color: #888; font-size: 0.9em; }
+        #log { background: #0d1117; padding: 12px; border-radius: 8px; font-family: monospace;
+               font-size: 0.85em; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+        #stats { font-size: 1.2em; color: #0f0; margin: 1em 0; }
+        canvas { background: #0d1117; border-radius: 8px; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <h1>🧪 LSL Browser Dashboard</h1>
+    <p>Connects to <code>lsl-bridge</code> via WebSocket.</p>
+
+    <div>
+        <button onclick="connect()">Connect</button>
+        <button onclick="listStreams()">Refresh Streams</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <span id="status" style="margin-left:1em; color:#888">disconnected</span>
+    </div>
+
+    <div id="streams"></div>
+    <div id="stats"></div>
+    <canvas id="plot" width="800" height="200"></canvas>
+    <div id="log"></div>
+
+    <script>
+        let ws = null;
+        let sampleCount = 0;
+        let lastCountReset = Date.now();
+        let plotData = [];  // ring buffer per channel
+        const PLOT_LEN = 500;
+
+        function log(msg) {
+            const el = document.getElementById('log');
+            el.textContent = msg + '\n' + el.textContent.slice(0, 5000);
+        }
+
+        function setStatus(s, color) {
+            const el = document.getElementById('status');
+            el.textContent = s;
+            el.style.color = color || '#888';
+        }
+
+        function connect() {
+            const url = prompt('WebSocket URL:', 'ws://localhost:8765');
+            if (!url) return;
+            ws = new WebSocket(url);
+            ws.onopen = () => { setStatus('connected', '#0f0'); log('Connected to ' + url); listStreams(); };
+            ws.onclose = () => { setStatus('disconnected', '#888'); log('Disconnected'); };
+            ws.onerror = (e) => { log('Error: ' + e); };
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+                if (msg.type === 'streams') {
+                    renderStreams(msg.streams);
+                } else if (msg.type === 'data') {
+                    handleData(msg);
+                } else if (msg.type === 'error') {
+                    log('Error: ' + msg.message);
+                }
+            };
+        }
+
+        function disconnect() {
+            if (ws) ws.close();
+        }
+
+        function listStreams() {
+            if (ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({type: 'list'}));
+            }
+        }
+
+        function subscribe(uid) {
+            if (ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({type: 'subscribe', stream_id: uid}));
+                log('Subscribed to ' + uid);
+            }
+        }
+
+        function unsubscribe(uid) {
+            if (ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({type: 'unsubscribe', stream_id: uid}));
+                log('Unsubscribed from ' + uid);
+            }
+        }
+
+        function renderStreams(streams) {
+            const el = document.getElementById('streams');
+            el.innerHTML = streams.map(s => `
+                <div class="stream-card">
+                    <div class="name">${s.name}</div>
+                    <div class="meta">${s.type_} · ${s.channel_count}ch · ${s.nominal_srate}Hz · ${s.channel_format} · ${s.hostname}</div>
+                    <button onclick="subscribe('${s.uid}')">Subscribe</button>
+                    <button onclick="unsubscribe('${s.uid}')">Unsubscribe</button>
+                </div>
+            `).join('');
+            log('Found ' + streams.length + ' stream(s)');
+        }
+
+        function handleData(msg) {
+            const n = msg.timestamps.length;
+            sampleCount += n;
+            const nch = msg.data[0] ? msg.data[0].length : 0;
+
+            // Update stats
+            const now = Date.now();
+            if (now - lastCountReset > 1000) {
+                const rate = (sampleCount / ((now - lastCountReset) / 1000)).toFixed(1);
+                document.getElementById('stats').textContent =
+                    `📊 ${rate} samples/sec · ${nch} channels · stream: ${msg.stream_id.slice(0,8)}…`;
+                sampleCount = 0;
+                lastCountReset = now;
+            }
+
+            // Update plot ring buffer
+            if (plotData.length !== nch) {
+                plotData = Array.from({length: nch}, () => new Float64Array(PLOT_LEN));
+            }
+            for (let s = 0; s < n; s++) {
+                for (let ch = 0; ch < nch; ch++) {
+                    plotData[ch].copyWithin(0, 1);
+                    plotData[ch][PLOT_LEN - 1] = msg.data[s][ch];
+                }
+            }
+            drawPlot(nch);
+        }
+
+        function drawPlot(nch) {
+            const canvas = document.getElementById('plot');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            ctx.fillStyle = '#0d1117';
+            ctx.fillRect(0, 0, w, h);
+
+            const colors = ['#0ff','#f0f','#ff0','#0f0','#f80','#08f','#f08','#8f0'];
+            const chH = h / Math.min(nch, 8);
+
+            for (let ch = 0; ch < Math.min(nch, 8); ch++) {
+                const arr = plotData[ch];
+                let min = Infinity, max = -Infinity;
+                for (let i = 0; i < PLOT_LEN; i++) {
+                    if (arr[i] < min) min = arr[i];
+                    if (arr[i] > max) max = arr[i];
+                }
+                const range = max - min || 1;
+                const yOff = ch * chH;
+
+                ctx.strokeStyle = colors[ch % colors.length];
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let i = 0; i < PLOT_LEN; i++) {
+                    const x = (i / PLOT_LEN) * w;
+                    const y = yOff + chH - ((arr[i] - min) / range) * chH * 0.9 - chH * 0.05;
+                    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        }
+    </script>
+</body>
+</html>

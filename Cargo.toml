@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/lsl-core",
+    "crates/lsl-sys",
+    "crates/exg",
+    "crates/lsl-rec",
+    "crates/lsl-rec-gui",
+    "crates/lsl-wasm",
+    "crates/lsl-gen",
+    "crates/lsl-bench",
+    "crates/lsl-convert",
+    "crates/lsl-cli",
+]
+# lsl-py requires maturin, lsl-fuzz requires nightly — exclude from default build
+exclude = ["crates/lsl-py", "crates/lsl-fuzz"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+license = "GPL-3.0-only"
+repository = "https://github.com/lsl-rs/lsl-rs"
+
+[workspace.dependencies]
+# Async runtime & networking
+tokio = { version = "1.35", features = ["net", "rt-multi-thread", "time", "sync", "macros", "io-util"] }
+socket2 = { version = "0.5", features = ["all"] }
+
+# Concurrency
+crossbeam-channel = "0.5"
+parking_lot = "0.12"
+once_cell = "1.17"
+
+# Serialization / formats
+serde = { version = "1.0", features = ["derive"] }
+quick-xml = "0.27"
+bytes = "1"
+
+# Utilities
+uuid = { version = "1.4", features = ["v4"] }
+hostname = "0.3"
+fxhash = "0.2"
+log = "0.4"
+anyhow = "1.0"
+
+# TUI
+ratatui = "0.30"
+crossterm = { version = "0.29", features = ["event-stream"] }
+
+# Async
+futures = "0.3"
+
+# Internal
+lsl-core = { path = "crates/lsl-core" }
+exg = { path = "crates/exg" }
+lsl-rec = { path = "crates/lsl-rec" }
+
+# Criterion benchmarks
+# Criterion benchmarks
+[workspace.dependencies.criterion]
+version = "0.5"
+features = ["html_reports"]
+
+[profile.bench]
+debug = true

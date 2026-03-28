@@ -1,0 +1,15 @@
+[package]
+name = "lsl-gen"
+description = "Synthetic LSL signal generator — sine, square, noise, chirp, counter waveforms"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false  # binary distributed via GitHub Releases
+
+[[bin]]
+name = "lsl-gen"
+path = "src/main.rs"
+
+[dependencies]
+lsl-core.workspace = true
+anyhow.workspace = true

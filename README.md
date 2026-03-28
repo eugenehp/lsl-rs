@@ -1,6 +1,6 @@
 # lsl-rs
 
-[![CI](https://github.com/lsl-rs/lsl-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/lsl-rs/lsl-rs/actions/workflows/ci.yml)
+[![CI](https://github.com/eugenehp/lsl-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/eugenehp/lsl-rs/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Rust rewrite of the [Lab Streaming Layer](https://github.com/sccn/liblsl) (liblsl) core library.

@@ -44,5 +44,5 @@ CMD ["list"]
 # ── Labels ───────────────────────────────────────────────────────────
 LABEL org.opencontainers.image.title="lsl-rs"
 LABEL org.opencontainers.image.description="Lab Streaming Layer (Rust) — recorder, generator, bridge"
-LABEL org.opencontainers.image.source="https://github.com/lsl-rs/lsl-rs"
+LABEL org.opencontainers.image.source="https://github.com/eugenehp/lsl-rs"
 LABEL org.opencontainers.image.licenses="MIT"

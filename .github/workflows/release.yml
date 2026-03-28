@@ -251,7 +251,7 @@ jobs:
             ### Python wheels (`pip install pylsl`)
             Pre-built for Python 3.9–3.13 on Linux/macOS/Windows.
             ```
-            pip install pylsl --find-links https://github.com/lsl-rs/lsl-rs/releases/download/${{ github.ref_name }}/
+            pip install pylsl --find-links https://github.com/eugenehp/lsl-rs/releases/download/${{ github.ref_name }}/
             ```
 
             ### WASM package
@@ -328,5 +328,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/lsl-rs/lsl-rs:${{ github.ref_name }}
-            ghcr.io/lsl-rs/lsl-rs:latest
+            ghcr.io/eugenehp/lsl-rs:${{ github.ref_name }}
+            ghcr.io/eugenehp/lsl-rs:latest

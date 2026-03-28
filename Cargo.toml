@@ -19,7 +19,7 @@ exclude = ["crates/lsl-py", "crates/lsl-fuzz"]
 version = "0.0.1"
 edition = "2021"
 license = "GPL-3.0-only"
-repository = "https://github.com/lsl-rs/lsl-rs"
+repository = "https://github.com/eugenehp/lsl-rs"
 
 [workspace.dependencies]
 # Async runtime & networking

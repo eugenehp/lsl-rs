@@ -52,5 +52,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Known Gaps
 - mDNS/Bonjour discovery not implemented (LSL uses UDP multicast as primary discovery)
 
-[Unreleased]: https://github.com/lsl-rs/lsl-rs/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/lsl-rs/lsl-rs/releases/tag/v0.1.0
+[Unreleased]: https://github.com/eugenehp/lsl-rs/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/eugenehp/lsl-rs/releases/tag/v0.1.0

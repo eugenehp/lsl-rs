@@ -1,12 +1,9 @@
 # ── Builder stage ─────────────────────────────────────────────────────
 FROM rust:1.85-bookworm AS builder
 
-# Install mold linker + sccache for fast builds
+# Install mold linker for fast linking
 RUN apt-get update && apt-get install -y --no-install-recommends mold \
-    && rm -rf /var/lib/apt/lists/* \
-    && cargo install sccache --locked
-
-ENV RUSTC_WRAPPER=sccache
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 COPY . .

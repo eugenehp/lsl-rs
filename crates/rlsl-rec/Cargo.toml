@@ -1,0 +1,30 @@
+[package]
+name = "rlsl-rec"
+description = "Real Life Streaming Layer recorder with TUI — records LSL streams to XDF files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "rlsl_rec"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rlsl-rec"
+path = "src/main.rs"
+
+[dependencies]
+rlsl.workspace = true
+exg.workspace = true
+tokio.workspace = true
+futures.workspace = true
+crossbeam-channel.workspace = true
+parking_lot.workspace = true
+ratatui.workspace = true
+crossterm.workspace = true
+anyhow.workspace = true
+uuid.workspace = true
+serde.workspace = true
+serde_json = "1.0"
+arrow = { version = "54", features = ["prettyprint"] }
+parquet = { version = "54", features = ["arrow", "zstd"] }

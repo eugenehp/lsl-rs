@@ -1,6 +1,6 @@
-# Contributing to lsl-rs
+# Contributing to rlsl
 
-Thank you for your interest in contributing to lsl-rs! This document provides
+Thank you for your interest in contributing to rlsl! This document provides
 guidelines and information for contributors.
 
 ## Table of Contents
@@ -24,8 +24,8 @@ Please be respectful and constructive in all interactions.
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally:
    ```sh
-   git clone https://github.com/<your-username>/lsl-rs.git
-   cd lsl-rs
+   git clone https://github.com/<your-username>/rlsl.git
+   cd rlsl
    ```
 3. **Create a branch** for your work:
    ```sh
@@ -37,8 +37,8 @@ Please be respectful and constructive in all interactions.
 ### Prerequisites
 
 - **Rust** 1.75+ (stable) — install via [rustup](https://rustup.rs)
-- **Python 3.9+** (optional, for `lsl-py` bindings)
-- **wasm-pack** (optional, for `lsl-wasm` builds)
+- **Python 3.9+** (optional, for `rlsl-py` bindings)
+- **wasm-pack** (optional, for `rlsl-wasm` builds)
 
 ### Building
 
@@ -47,17 +47,17 @@ Please be respectful and constructive in all interactions.
 cargo build
 
 # Build specific crate
-cargo build -p lsl-core
+cargo build -p rlsl
 
 # Build C shared library (liblsl)
-cargo build -p lsl-sys
+cargo build -p rlsl-sys
 
 # Build Python wheel (requires maturin)
 pip install maturin
-maturin develop -m crates/lsl-py/Cargo.toml
+maturin develop -m crates/rlsl-py/Cargo.toml
 
 # Build WASM package
-cd crates/lsl-wasm
+cd crates/rlsl-wasm
 wasm-pack build --target web --features wasm --no-default-features
 ```
 
@@ -68,7 +68,7 @@ wasm-pack build --target web --features wasm --no-default-features
 cargo test
 
 # Specific crate
-cargo test -p lsl-core
+cargo test -p rlsl
 
 # With output
 cargo test -- --nocapture
@@ -83,7 +83,7 @@ cargo bench
 - **Linting**: Run `cargo clippy --all-targets` and fix all warnings
 - **Documentation**: All public items must have doc comments (`///`)
 - **Error handling**: Use `anyhow::Result` in binaries, custom errors in libraries
-- **Unsafe code**: Minimize; document safety invariants when required (only in `lsl-sys`)
+- **Unsafe code**: Minimize; document safety invariants when required (only in `rlsl-sys`)
 - **Dependencies**: Prefer workspace dependencies; discuss new deps in the PR
 
 ### Naming Conventions
@@ -130,8 +130,8 @@ ci: add Windows ARM64 to build matrix
 |----------|----------|-------------|
 | Unit tests | `#[cfg(test)]` in source files | Module-level tests |
 | Integration | `crates/*/tests/` | Cross-module tests |
-| E2E | `crates/lsl-rec/tests/` | Full recording pipeline |
-| Fuzz | `crates/lsl-fuzz/` | Protocol/parser fuzzing |
+| E2E | `crates/rlsl-rec/tests/` | Full recording pipeline |
+| Fuzz | `crates/rlsl-fuzz/` | Protocol/parser fuzzing |
 | Benchmarks | `benches/` | Criterion micro-benchmarks |
 | Interop | `tests/interop/` | C liblsl compatibility |
 
@@ -149,17 +149,17 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 The workspace is organized as:
 
 ```
-lsl-core          ← Pure Rust library (protocol, networking, types)
+rlsl          ← Pure Rust library (protocol, networking, types)
   ↑
-lsl-sys           ← C ABI shim (extern "C" functions → liblsl.dylib)
-lsl-rec           ← Recording engine + TUI
-lsl-rec-gui       ← eGUI recorder
-lsl-py            ← Python bindings (PyO3)
-lsl-wasm          ← WebSocket bridge + WASM client
-lsl-cli           ← Unified CLI tool
-lsl-gen           ← Signal generator
-lsl-bench         ← Benchmarks
-lsl-convert       ← Format converter
+rlsl-sys           ← C ABI shim (extern "C" functions → liblsl.dylib)
+rlsl-rec           ← Recording engine + TUI
+rrlsl-rec-gui       ← eGUI recorder
+rlsl-py            ← Python bindings (PyO3)
+rlsl-wasm          ← WebSocket bridge + WASM client
+rlsl-cli           ← Unified CLI tool
+rlsl-gen           ← Signal generator
+rlsl-bench         ← Benchmarks
+rlsl-convert       ← Format converter
 exg               ← XDF writer + sample traits
 ```
 

@@ -28,10 +28,10 @@ jobs:
         run: echo 'RUSTFLAGS=-D warnings -C link-arg=-fuse-ld=mold' >> "$GITHUB_ENV"
       - name: Check formatting
         run: cargo fmt --all -- --check
-      - name: Clippy (workspace, exclude lsl-py/lsl-wasm)
+      - name: Clippy (workspace, exclude rlsl-py/rlsl-wasm)
         run: >
           cargo clippy
-          -p lsl-core -p lsl-sys -p exg -p lsl-rec -p lsl-rec-gui -p lsl-cli
+          -p rlsl -p rlsl-sys -p exg -p rlsl-rec -p rlsl-rec-gui -p rlsl-cli
           -- -D warnings
 
   # ── Dependency audit ──────────────────────────────────────────────
@@ -87,7 +87,7 @@ jobs:
       - name: Build workspace
         run: >
           cargo build
-          -p lsl-core -p lsl-sys -p exg -p lsl-rec -p lsl-cli
+          -p rlsl -p rlsl-sys -p exg -p rlsl-rec -p rlsl-cli
           --target ${{ matrix.target }}
 
       # GUI needs extra deps on Linux
@@ -99,27 +99,27 @@ jobs:
             libvulkan-dev
 
       - name: Build GUI
-        run: cargo build -p lsl-rec-gui --target ${{ matrix.target }}
+        run: cargo build -p rlsl-rec-gui --target ${{ matrix.target }}
 
       - name: Build bridge
         run: >
-          cargo build -p lsl-wasm --features bridge --bin lsl-bridge
+          cargo build -p rlsl-wasm --features bridge --bin rlsl-bridge
           --target ${{ matrix.target }}
 
-      - name: Unit tests (lsl-core)
-        run: cargo test -p lsl-core --target ${{ matrix.target }}
+      - name: Unit tests (rlsl)
+        run: cargo test -p rlsl --target ${{ matrix.target }}
 
-      - name: E2E tests (lsl-rec)
+      - name: E2E tests (rlsl-rec)
         if: runner.os == 'Linux'
-        run: cargo test -p lsl-rec --target ${{ matrix.target }} -- --nocapture
+        run: cargo test -p rlsl-rec --target ${{ matrix.target }} -- --nocapture
 
       - name: Check liblsl symbols
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
-            nm -gU target/${{ matrix.target }}/debug/liblsl.dylib | grep ' T _lsl_' | wc -l
+            nm -gU target/${{ matrix.target }}/debug/librlsl.dylib | grep ' T _lsl_' | wc -l
           elif [ "$RUNNER_OS" = "Linux" ]; then
-            nm -D target/${{ matrix.target }}/debug/liblsl.so | grep ' T lsl_' | wc -l
+            nm -D target/${{ matrix.target }}/debug/librlsl.so | grep ' T lsl_' | wc -l
           else
             echo "(symbol check skipped on Windows)"
           fi
@@ -154,7 +154,7 @@ jobs:
       - name: Enable mold
         run: echo 'RUSTFLAGS=-D warnings -C link-arg=-fuse-ld=mold' >> "$GITHUB_ENV"
       - name: Build docs
-        run: cargo doc --workspace --no-deps --exclude lsl-py --exclude lsl-wasm
+        run: cargo doc --workspace --no-deps --exclude rlsl-py --exclude rlsl-wasm
         env:
           RUSTDOCFLAGS: "-D warnings"
 
@@ -172,7 +172,7 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build WASM package
-        working-directory: crates/lsl-wasm
+        working-directory: crates/rlsl-wasm
         run: wasm-pack build --target web --features wasm --no-default-features
 
   # ── Python wheels ─────────────────────────────────────────────────
@@ -199,7 +199,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release -m crates/lsl-py/Cargo.toml --out dist
+          args: --release -m crates/rlsl-py/Cargo.toml --out dist
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
@@ -214,6 +214,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t lsl-rs:ci .
+        run: docker build -t rlsl:ci .
       - name: Verify image
-        run: docker run --rm lsl-rs:ci version
+        run: docker run --rm rlsl:ci version

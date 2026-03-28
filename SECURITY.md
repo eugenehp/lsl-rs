@@ -11,9 +11,9 @@
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability in lsl-rs, please report it responsibly:
+If you discover a security vulnerability in rlsl, please report it responsibly:
 
-1. **Email**: Send a description to the maintainers at **security@lsl-rs.org**
+1. **Email**: Send a description to the maintainers at **security@rlsl.org**
 2. **Include**:
    - Description of the vulnerability
    - Steps to reproduce or proof of concept
@@ -36,15 +36,15 @@ The following are in scope for security reports:
   or denial of service in the LSL protocol parser (`sample.rs`, `tcp_server.rs`, `udp_server.rs`)
 - **Buffer overflows**: In sample deserialization, XML parsing, or raw data handling
 - **Denial of service**: Resource exhaustion via crafted network traffic
-- **C ABI safety**: Undefined behavior in `lsl-sys` extern functions
-- **Python binding safety**: Memory safety issues in `lsl-py` PyO3 bindings
+- **C ABI safety**: Undefined behavior in `rlsl-sys` extern functions
+- **Python binding safety**: Memory safety issues in `rlsl-py` PyO3 bindings
 - **WASM bridge**: WebSocket message handling vulnerabilities
 
 ## Security Considerations
 
 ### Network Protocol
 
-lsl-rs implements the LSL protocol which is designed for **local network** (LAN)
+rlsl implements the LSL protocol which is designed for **local network** (LAN)
 use in research environments. It does **not** provide:
 
 - Authentication or authorization
@@ -53,7 +53,7 @@ use in research environments. It does **not** provide:
 
 **Do not expose LSL streams to untrusted networks.**
 
-### C ABI (`lsl-sys`)
+### C ABI (`rlsl-sys`)
 
 The C ABI layer uses `unsafe` Rust to interface with C callers. All pointer
 parameters are validated for null, but callers must ensure:
@@ -64,7 +64,7 @@ parameters are validated for null, but callers must ensure:
 
 ### Fuzzing
 
-We maintain fuzz targets in `crates/lsl-fuzz/` covering:
+We maintain fuzz targets in `crates/rlsl-fuzz/` covering:
 
 - Protocol 1.00 and 1.10 sample deserialization
 - XML DOM parsing

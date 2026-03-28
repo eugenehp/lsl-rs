@@ -1,40 +1,40 @@
 # Architecture
 
-This document describes the internal architecture of lsl-rs, a pure-Rust
-implementation of the Lab Streaming Layer (LSL) protocol.
+This document describes the internal architecture of rlsl, a pure-Rust
+implementation of the Real Life Streaming Layer (LSL) protocol.
 
 ## Crate Dependency Graph
 
 ```
                     ┌──────────┐
-                    │ lsl-core │  ← Pure Rust library (no C deps)
+                    │ rlsl │  ← Pure Rust library (no C deps)
                     └────┬─────┘
           ┌──────────┬───┼───────┬──────────┬───────────┐
           │          │   │       │          │           │
      ┌────▼──┐  ┌───▼──┐│  ┌───▼───┐ ┌───▼────┐  ┌──▼──────┐
-     │lsl-sys│  │lsl-py││  │lsl-gen│ │lsl-wasm│  │lsl-bench│
+     │rlsl-sys│  │rlsl-py││  │rlsl-gen│ │rlsl-wasm│  │rlsl-bench│
      │(cdylib)│  │(PyO3) ││  │(bin)  │ │(bridge)│  │(bin)    │
      └───────┘  └──────┘│  └───────┘ └────────┘  └─────────┘
                          │
               ┌──────────┼──────────┐
               │          │          │
          ┌────▼───┐  ┌──▼───┐  ┌──▼────────┐
-         │lsl-rec │  │ exg  │  │lsl-convert│
+         │rlsl-rec │  │ exg  │  │rlsl-convert│
          │(lib+bin)│  │(XDF) │  │(bin)      │
          └────┬───┘  └──────┘  └───────────┘
               │
          ┌────▼──────┐
-         │lsl-rec-gui│
+         │rrlsl-rec-gui│
          │(eGUI)     │
          └───────────┘
 ```
 
-## Core Library (`lsl-core`)
+## Core Library (`rlsl`)
 
 ### Module Layout
 
 ```
-lsl-core/src/
+rlsl/src/
 ├── lib.rs              # Crate root, shared tokio runtime, prelude
 ├── types.rs            # ChannelFormat, ErrorCode, protocol constants
 ├── clock.rs            # Monotonic local_clock() (std::time::Instant)
@@ -177,7 +177,7 @@ Config file search:
 Built-in defaults (types.rs constants)
 ```
 
-## Recording Pipeline (`lsl-rec`)
+## Recording Pipeline (`rlsl-rec`)
 
 ```
 ┌──────────┐    ┌───────────┐    ┌────────────┐    ┌──────────┐
@@ -196,20 +196,20 @@ Built-in defaults (types.rs constants)
                 └───────────┘
 ```
 
-## WebSocket Bridge (`lsl-wasm`)
+## WebSocket Bridge (`rlsl-wasm`)
 
 ```
  Browser (WASM)              Bridge Server              LSL Network
 ┌────────────┐           ┌──────────────┐          ┌──────────────┐
-│ lsl_wasm   │◀──WS────▶│  lsl-bridge  │◀──LSL──▶│  Outlets     │
+│ lsl_wasm   │◀──WS────▶│  rlsl-bridge  │◀──LSL──▶│  Outlets     │
 │ (JS/WASM)  │  JSON     │  (tokio +    │  TCP     │  (any host)  │
 │            │  frames   │  tungstenite)│          │              │
 └────────────┘           └──────────────┘          └──────────────┘
 ```
 
-## C ABI Layer (`lsl-sys`)
+## C ABI Layer (`rlsl-sys`)
 
-The `lsl-sys` crate exposes 162 `extern "C"` functions matching liblsl's API exactly.
+The `rlsl-sys` crate exposes 162 `extern "C"` functions matching liblsl's API exactly.
 Handles are opaque pointers to Rust objects stored in `Box`:
 
 ```rust
@@ -228,9 +228,9 @@ pub extern "C" fn lsl_destroy_outlet(obj: lsl_outlet) {
 }
 ```
 
-## Python Bindings (`lsl-py`)
+## Python Bindings (`rlsl-py`)
 
-Uses PyO3 to wrap `lsl-core` types as Python classes:
+Uses PyO3 to wrap `rlsl` types as Python classes:
 
 ```python
 import pylsl

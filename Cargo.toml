@@ -1,24 +1,24 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/lsl-core",
-    "crates/lsl-sys",
-    "crates/lsl-rec",
-    "crates/lsl-rec-gui",
-    "crates/lsl-wasm",
-    "crates/lsl-gen",
-    "crates/lsl-bench",
-    "crates/lsl-convert",
-    "crates/lsl-cli",
+    "crates/rlsl",
+    "crates/rlsl-sys",
+    "crates/rlsl-rec",
+    "crates/rlsl-rec-gui",
+    "crates/rlsl-wasm",
+    "crates/rlsl-gen",
+    "crates/rlsl-bench",
+    "crates/rlsl-convert",
+    "crates/rlsl-cli",
 ]
-# lsl-py requires maturin, lsl-fuzz requires nightly — exclude from default build
-exclude = ["crates/lsl-py", "crates/lsl-fuzz"]
+# rlsl-py requires maturin, rlsl-fuzz requires nightly — exclude from default build
+exclude = ["crates/rlsl-py", "crates/rlsl-fuzz"]
 
 [workspace.package]
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 license = "GPL-3.0-only"
-repository = "https://github.com/eugenehp/lsl-rs"
+repository = "https://github.com/eugenehp/rlsl"
 
 [workspace.dependencies]
 # Async runtime & networking
@@ -50,11 +50,10 @@ crossterm = { version = "0.29", features = ["event-stream"] }
 futures = "0.3"
 
 # Internal
-lsl-core = { version = "0.0.1", path = "crates/lsl-core" }
+rlsl = { version = "0.0.2", path = "crates/rlsl" }
 exg = { version = "0.0.4" }
-lsl-rec = { path = "crates/lsl-rec" }
+rlsl-rec = { path = "crates/rlsl-rec" }
 
-# Criterion benchmarks
 # Criterion benchmarks
 [workspace.dependencies.criterion]
 version = "0.5"

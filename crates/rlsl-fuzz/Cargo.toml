@@ -1,0 +1,41 @@
+[package]
+name = "rlsl-fuzz"
+description = "Fuzz testing targets for rlsl protocol parsers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false  # internal dev-only
+
+[package.metadata.cargo-fuzz]
+# This crate is used only via `cargo fuzz`
+
+[dependencies]
+rlsl.workspace = true
+libfuzzer-sys = "0.4"
+arbitrary = { version = "1", features = ["derive"] }
+
+# Fuzz targets (each is a [[bin]] entry)
+[[bin]]
+name = "fuzz_sample_110"
+path = "fuzz_targets/fuzz_sample_110.rs"
+doc = false
+
+[[bin]]
+name = "fuzz_sample_100"
+path = "fuzz_targets/fuzz_sample_100.rs"
+doc = false
+
+[[bin]]
+name = "fuzz_xml_dom"
+path = "fuzz_targets/fuzz_xml_dom.rs"
+doc = false
+
+[[bin]]
+name = "fuzz_query_match"
+path = "fuzz_targets/fuzz_query_match.rs"
+doc = false
+
+[[bin]]
+name = "fuzz_stream_info_xml"
+path = "fuzz_targets/fuzz_stream_info_xml.rs"
+doc = false

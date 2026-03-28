@@ -1,0 +1,17 @@
+[package]
+name = "rlsl-py"
+description = "Python bindings for rlsl — Lab Streaming Layer in pure Rust"
+version = "0.0.2"
+edition = "2021"
+license = "GPL-3.0-only"
+publish = false  # published to PyPI, not crates.io
+
+[lib]
+name = "pylsl"
+crate-type = ["cdylib"]
+
+[dependencies]
+rlsl = { path = "../rlsl" }
+pyo3 = { version = "0.24", features = ["extension-module", "generate-import-lib"] }
+numpy = "0.24"
+ndarray = "0.16"

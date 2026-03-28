@@ -90,30 +90,30 @@ jobs:
         if: "!matrix.cross"
         run: >
           cargo build --release --target ${{ matrix.target }}
-          -p lsl-rec -p lsl-rec-gui -p lsl-sys -p lsl-cli
+          -p rlsl-rec -p rlsl-rec-gui -p rlsl-sys -p rlsl-cli
           &&
           cargo build --release --target ${{ matrix.target }}
-          -p lsl-wasm --features bridge --bin lsl-bridge
+          -p rlsl-wasm --features bridge --bin rlsl-bridge
 
       - name: Build (cross)
         if: matrix.cross
         run: >
           cross build --release --target ${{ matrix.target }}
-          -p lsl-rec -p lsl-sys -p lsl-cli
+          -p rlsl-rec -p rlsl-sys -p rlsl-cli
           &&
           cross build --release --target ${{ matrix.target }}
-          -p lsl-wasm --features bridge --bin lsl-bridge
+          -p rlsl-wasm --features bridge --bin rlsl-bridge
 
       # Package artifacts
       - name: Package
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME}"
-          DIR="lsl-rs-${TAG}-${{ matrix.name }}"
+          DIR="rlsl-${TAG}-${{ matrix.name }}"
           mkdir -p "$DIR"
 
           # Binaries
-          for BIN in lsl lsl-rec lsl-bridge; do
+          for BIN in rlsl rlsl-rec rlsl-bridge; do
             SRC="target/${{ matrix.target }}/release/${BIN}${{ matrix.ext }}"
             if [ -f "$SRC" ]; then
               cp "$SRC" "$DIR/"
@@ -121,15 +121,15 @@ jobs:
           done
 
           # GUI binary (not built for cross)
-          SRC="target/${{ matrix.target }}/release/lsl-rec-gui${{ matrix.ext }}"
+          SRC="target/${{ matrix.target }}/release/rlsl-rec-gui${{ matrix.ext }}"
           if [ -f "$SRC" ]; then
             cp "$SRC" "$DIR/"
           fi
 
           # Shared library (liblsl)
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp target/${{ matrix.target }}/release/lsl.dll "$DIR/" 2>/dev/null || true
-            cp target/${{ matrix.target }}/release/lsl.dll.lib "$DIR/" 2>/dev/null || true
+            cp target/${{ matrix.target }}/release/rlsl.dll "$DIR/" 2>/dev/null || true
+            cp target/${{ matrix.target }}/release/rlsl.dll.lib "$DIR/" 2>/dev/null || true
           else
             cp target/${{ matrix.target }}/release/liblsl${{ matrix.lib_ext }} "$DIR/" 2>/dev/null || true
           fi
@@ -148,7 +148,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.name }}
-          path: lsl-rs-*.*
+          path: rlsl-*.*
 
   # ── WASM package ──────────────────────────────────────────────────
   wasm:
@@ -163,22 +163,22 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build WASM
-        working-directory: crates/lsl-wasm
+        working-directory: crates/rlsl-wasm
         run: wasm-pack build --release --target web --features wasm --no-default-features
       - name: Package WASM
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME}"
-          DIR="lsl-wasm-${TAG}"
+          DIR="rlsl-wasm-${TAG}"
           mkdir -p "$DIR"
-          cp -r crates/lsl-wasm/pkg/* "$DIR/"
-          cp crates/lsl-wasm/www/index.html "$DIR/"
+          cp -r crates/rlsl-wasm/pkg/* "$DIR/"
+          cp crates/rlsl-wasm/www/index.html "$DIR/"
           tar czf "${DIR}.tar.gz" "$DIR"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-wasm
-          path: lsl-wasm-*.tar.gz
+          path: rlsl-wasm-*.tar.gz
 
   # ── Python wheels (all platforms) ─────────────────────────────────
   python:
@@ -220,7 +220,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           args: >
-            --release -m crates/lsl-py/Cargo.toml
+            --release -m crates/rlsl-py/Cargo.toml
             --out dist
             --interpreter 3.9 3.10 3.11 3.12 3.13
       - name: Upload wheels
@@ -258,22 +258,22 @@ jobs:
             ### Native binaries
             | Platform | Archive |
             |----------|---------|
-            | Linux x86_64 | `lsl-rs-${{ github.ref_name }}-linux-x86_64.tar.gz` |
-            | Linux aarch64 | `lsl-rs-${{ github.ref_name }}-linux-aarch64.tar.gz` |
-            | macOS x86_64 | `lsl-rs-${{ github.ref_name }}-macos-x86_64.tar.gz` |
-            | macOS aarch64 | `lsl-rs-${{ github.ref_name }}-macos-aarch64.tar.gz` |
-            | Windows x86_64 | `lsl-rs-${{ github.ref_name }}-windows-x86_64.zip` |
+            | Linux x86_64 | `rlsl-${{ github.ref_name }}-linux-x86_64.tar.gz` |
+            | Linux aarch64 | `rlsl-${{ github.ref_name }}-linux-aarch64.tar.gz` |
+            | macOS x86_64 | `rlsl-${{ github.ref_name }}-macos-x86_64.tar.gz` |
+            | macOS aarch64 | `rlsl-${{ github.ref_name }}-macos-aarch64.tar.gz` |
+            | Windows x86_64 | `rlsl-${{ github.ref_name }}-windows-x86_64.zip` |
 
-            Each archive contains: `lsl` (CLI), `lsl-rec`, `lsl-rec-gui`, `lsl-bridge`, `liblsl.{dylib,so,dll}`
+            Each archive contains: `rlsl` (CLI), `rlsl-rec`, `rlsl-rec-gui`, `rlsl-bridge`, `librlsl.{dylib,so,dll}`
 
             ### Python wheels (`pip install pylsl`)
             Pre-built for Python 3.9–3.13 on Linux/macOS/Windows.
             ```
-            pip install pylsl --find-links https://github.com/eugenehp/lsl-rs/releases/download/${{ github.ref_name }}/
+            pip install pylsl --find-links https://github.com/eugenehp/rlsl/releases/download/${{ github.ref_name }}/
             ```
 
             ### WASM package
-            `lsl-wasm-${{ github.ref_name }}.tar.gz` — includes `lsl_wasm.js`, `.wasm`, and demo `index.html`.
+            `rlsl-wasm-${{ github.ref_name }}.tar.gz` — includes `lsl_wasm.js`, `.wasm`, and demo `index.html`.
 
   # ── Publish Python wheels to PyPI ─────────────────────────────────
   pypi:
@@ -316,10 +316,10 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
       - name: Build WASM
-        working-directory: crates/lsl-wasm
-        run: wasm-pack build --release --target web --features wasm --no-default-features --scope lsl-rs
+        working-directory: crates/rlsl-wasm
+        run: wasm-pack build --release --target web --features wasm --no-default-features --scope rlsl
       - name: Publish to npm
-        working-directory: crates/lsl-wasm/pkg
+        working-directory: crates/rlsl-wasm/pkg
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -335,10 +335,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Publish exg
         run: cargo publish -p exg --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - name: Publish lsl-core
-        run: cargo publish -p lsl-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      - name: Publish lsl-rec
-        run: cargo publish -p lsl-rec --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish rlsl
+        run: cargo publish -p rlsl --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish rlsl-rec
+        run: cargo publish -p rlsl-rec --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   # ── Docker image ──────────────────────────────────────────────────
   docker:
@@ -362,5 +362,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/eugenehp/lsl-rs:${{ github.ref_name }}
-            ghcr.io/eugenehp/lsl-rs:latest
+            ghcr.io/eugenehp/rlsl:${{ github.ref_name }}
+            ghcr.io/eugenehp/rlsl:latest

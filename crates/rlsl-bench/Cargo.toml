@@ -1,0 +1,15 @@
+[package]
+name = "rlsl-bench"
+description = "LSL throughput & latency benchmark tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false  # binary distributed via GitHub Releases
+
+[[bin]]
+name = "rlsl-bench"
+path = "src/main.rs"
+
+[dependencies]
+rlsl.workspace = true
+anyhow.workspace = true

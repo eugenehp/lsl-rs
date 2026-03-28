@@ -1,0 +1,24 @@
+[package]
+name = "rlsl-rec-gui"
+description = "Real Life Streaming Layer recorder with eGUI — records LSL streams to XDF files"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false  # binary distributed via GitHub Releases
+
+[[bin]]
+name = "rlsl-rec-gui"
+path = "src/main.rs"
+
+[dependencies]
+rlsl.workspace = true
+rlsl-rec = { path = "../rlsl-rec" }
+tokio.workspace = true
+eframe = { version = "0.31", default-features = false, features = [
+    "default_fonts",
+    "wgpu",
+    "wayland",
+    "x11",
+] }
+egui_plot = "0.31"
+anyhow.workspace = true

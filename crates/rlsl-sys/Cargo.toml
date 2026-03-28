@@ -1,0 +1,14 @@
+[package]
+name = "rlsl-sys"
+description = "Real Life Streaming Layer — C ABI shared library (drop-in replacement for liblsl)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false  # cdylib distributed as pre-built binaries, not a Rust dependency
+
+[lib]
+name = "rlsl"                    # produces liblsl.dylib / liblsl.so / lsl.dll
+crate-type = ["cdylib"]
+
+[dependencies]
+rlsl.workspace = true

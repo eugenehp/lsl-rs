@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] — 2026-03-28
+
+### Added
+- **`rlsl-iroh` crate** — tunnel LSL streams over iroh peer-to-peer QUIC connections
+  - Source/sink architecture: streams forwarded transparently, re-published as local LSL outlets
+  - Zero data loss guarantee via reliable QUIC streams, unbounded channels, 32K-sample inlet buffer
+  - 6 compression codecs: none, lz4, zstd (L1/L3), snappy, delta-lz4
+  - Low-latency QUIC transport tuning (immediate ACKs, zero ACK delay, 1ms initial RTT)
+  - Optional lossy datagram mode behind `lossy-datagrams` feature flag
+  - In-process benchmark (`rlsl-iroh bench`) with zero-loss assertion
+  - Continuous stream discovery (`--continuous`)
+  - Connection tickets for easy node-id exchange
+  - 23 tests (8 unit, 9 protocol roundtrip, 6 end-to-end iroh tunnel)
+- **Benchmark suite** in `figures/`
+  - 43-configuration sweep: codecs × channels × sample rates × formats
+  - 8 auto-generated charts (codec latency, channel/rate scaling, format comparison, etc.)
+  - `run_benchmarks.sh` + `plot_benchmarks.py` for reproducibility
+  - All 43 runs: 0.00% data loss, ~52µs mean latency at 10 MB/s throughput
+
 ## [Unreleased]
 
 ### Added

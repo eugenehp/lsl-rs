@@ -10,12 +10,13 @@ members = [
     "crates/rlsl-bench",
     "crates/rlsl-convert",
     "crates/rlsl-cli",
+    "crates/rlsl-iroh",
 ]
 # rlsl-py requires maturin, rlsl-fuzz requires nightly — exclude from default build
 exclude = ["crates/rlsl-py", "crates/rlsl-fuzz"]
 
 [workspace.package]
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 license = "GPL-3.0-only"
 repository = "https://github.com/eugenehp/rlsl"
@@ -50,7 +51,7 @@ crossterm = { version = "0.29", features = ["event-stream"] }
 futures = "0.3"
 
 # Internal
-rlsl = { version = "0.0.2", path = "crates/rlsl" }
+rlsl = { version = "0.0.3", path = "crates/rlsl" }
 exg = { version = "0.0.5" }
 rlsl-rec = { path = "crates/rlsl-rec" }
 

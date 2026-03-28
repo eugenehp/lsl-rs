@@ -1,0 +1,33 @@
+[package]
+name = "rlsl-iroh"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Iroh QUIC tunnel bridge for rlsl (Lab Streaming Layer)"
+repository.workspace = true
+
+[[bin]]
+name = "rlsl-iroh"
+path = "src/main.rs"
+
+[features]
+default = []
+## Enable lossy QUIC datagram transport (fire-and-forget, lowest latency,
+## but **will** drop samples under congestion). Opt-in only.
+lossy-datagrams = []
+
+[dependencies]
+rlsl.workspace = true
+iroh = "0.97"
+tokio = { workspace = true, features = ["signal"] }
+anyhow = { workspace = true }
+bytes = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+log = { workspace = true }
+env_logger = "0.11"
+serde = { workspace = true }
+serde_json = "1"
+base64 = "0.22"
+lz4_flex = "0.11"
+zstd = "0.13"
+snap = "1"

@@ -56,8 +56,6 @@ jobs:
             target: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            # Disable PDB debug info on Windows to avoid disk space exhaustion
-            extra_rustflags: "-C debuginfo=0"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -77,10 +75,12 @@ jobs:
         shell: bash
         run: rm -f .cargo/config.toml
 
-      - name: Set RUSTFLAGS for Windows (no PDB)
+      # Disable debug info on Windows to avoid PDB disk space exhaustion
+      - name: Disable debuginfo (Windows)
         if: runner.os == 'Windows'
-        shell: bash
-        run: echo "RUSTFLAGS=-D warnings -C debuginfo=0" >> "$GITHUB_ENV"
+        shell: pwsh
+        run: |
+          "[profile.dev]`ndebuginfo = 0`n[profile.test]`ndebuginfo = 0" | Out-File -Append -Encoding utf8 Cargo.toml
 
       - name: Build workspace
         run: >

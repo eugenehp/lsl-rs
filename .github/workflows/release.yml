@@ -52,6 +52,8 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v1"
 
       # mold linker on Linux
       - name: Install mold
@@ -63,6 +65,14 @@ jobs:
         if: runner.os != 'Linux'
         shell: bash
         run: rm -f .cargo/config.toml
+
+      # Disable debug info on Windows to avoid PDB disk space exhaustion
+      - name: Disable debuginfo (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          "[profile.release]`ndebuginfo = 0" | Out-File -Append -Encoding utf8 Cargo.toml
+          if (Test-Path target) { cargo clean }
 
       # Cross-compilation for Linux aarch64
       - name: Install cross

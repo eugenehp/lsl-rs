@@ -63,6 +63,8 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "v1"
 
       # mold is Linux-only
       - name: Install mold
@@ -81,6 +83,7 @@ jobs:
         shell: pwsh
         run: |
           "[profile.dev]`ndebuginfo = 0`n[profile.test]`ndebuginfo = 0" | Out-File -Append -Encoding utf8 Cargo.toml
+          if (Test-Path target) { cargo clean }
 
       - name: Build workspace
         run: >
